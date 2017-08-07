@@ -1,59 +1,3 @@
-library(readr)
-
-actors = read_csv("https://raw.githubusercontent.com/TMBish/Stratton/master/data/actors.csv")
-directors = read_csv("https://raw.githubusercontent.com/TMBish/Stratton/master/data/directors.csv")
-
-films = data.frame(
-  title = character(),
-  url = character(),
-  year = integer(),
-  tomato_meter = integer(),
-  box_office = integer(),
-  director = character(),
-  actor_1 = character(),
-  actor_2 = character(),
-  actor_3 = character(),
-  actor_4 = character(),
-  actor_5 = character(),
-  actor_6 = character()
-)
-
-
-
-get_film_urls = function(actor) {
-  
-  require(rvest)
-  require(stringr)
-  require(dplyr)
-  
-  actor_string = str_replace_all(str_replace_all(tolower(actor), " ", "_"),"[\\-\\.]"," ")
-  
-  celeb_url = sprintf("https://www.rottentomatoes.com/celebrity/%s/", actor_string)
-
-  films = tryCatch(
-    {
-      
-      film_tables = tryCatch({
-        #Most URLS look like "Tom_Bishop"  
-        celeb_url %>%
-          read_html() %>%
-          html_nodes(xpath = "//*[@id='filmographyTbl'][1]") %>%
-          html_table()        
-      }, error = function(e) {
-        #Some URLS randomly look like "Tom-Bishop"
-        person_string = str_replace_all(str_replace_all(tolower(person),"[\\-\\.]"," "), " ", "-")
-        celeb_url = sprintf("https://www.rottentomatoes.com/celebrity/%s/", person_string)        
-        return(
-          celeb_url %>%
-            read_html() %>%
-            html_nodes(xpath = "//*[@id='filmographyTbl']") %>%
-            html_table()
-        )  
-      })
-  
-}
-
-
 
 get_tomatoes = function(actor) {
   
@@ -157,71 +101,73 @@ get_tomatoes = function(actor) {
 }
 
 
-get_tomatoes(actors[1,1])
-
-
-## Psuedo Code
-
-# For each actor / director in my top 500 lists:
-
-  # Go to their rotten tomatoes page
-
-  # Extract the list of films they're credited for
-  
-  # For each of these films:
-    
-    # Check films table to see if it exists
-  
-    # If not already in films table:
-    
-        # Go to this movie's rotten tomatoes page
-  
-        # Scrape the following data points:
-  
-          # Year, Title, Rotten tomatoes score, revenue, director, top 6 actors
-
-
-
-
-test = 
-  celeb_url %>%
-  read_html() %>%
-  html_nodes(xpath = "//table[@id='filmographyTbl'][1]/tbody/tr/td/a[contains(@class, 'articleLink')]/@href") %>%
-  html_text()
-
-
-%>%
-  html_table()        
-
 
 
 parse_film = function(url_extension) {
   
+  # url_extension = "m/departed/"
+  
+  output = list()
+  
+  output$url = url_extension
+  
+  # Raw HTML Page ------------------------------------------------------------------
   page_raw = 
     glue("https://www.rottentomatoes.com/{url_extension}") %>%
     read_html()
   
-  # Tomato Meter ------------------------------------------------------------------
+  # Stats ------------------------------------------------------------------
+  title = page_raw %>% xml_nodes(xpath = "//h1[@data-type='title']") %>% html_text() %>% extract(1)
   
-  test = page_raw %>%
+  output$year = title %>% str_extract("(?<=\\()\\d+(?=\\))") %>% as.integer()
+  output$title = title %>% str_trim() %>% str_replace("\\(\\d+\\)","") %>% str_trim()
+    
+  metrics = page_raw %>%
     xml_nodes(xpath = "//*[@id='scoreStats']/div[contains(@class, 'superPageFontColor')]") %>%
     html_text() %>%
     magrittr::extract(1:4) %>%
-    vapply(., function(x){str_replace_all(x,"\\s","")})
-    str_split("\\:", simplify = TRUE) %>%
-    str_trim()
+    gsub("\\s", "", .) %>%
+    str_split("\\:", simplify = TRUE)
   
-    str_replace_all("[\t\n\r\v\f]","")
+  reviews = metrics[match("ReviewsCounted", metrics[,1]),2] %>% as.integer()
+  output$reviews = reviews
+  
+  goods = metrics[match("Fresh", metrics[,1]),2] %>% as.integer()
+  
+  bads = metrics[match("Rotten", metrics[,1]),2] %>% as.integer()
+  
+  output$tomatometer = round((goods / reviews) * 100,0)
+  
+  output$av_rating = metrics[match("AverageRating", metrics[,1]),2] %>% str_extract(".+(?=\\/)") %>% as.double()
+  
   # Audience Score ------------------------------------------------------------------
+  output$audience = page_raw %>%
+    xml_nodes(xpath = "//div[contains(@class,'audience-score')]") %>%
+    html_text() %>%
+    str_extract("\\d+") %>%
+    as.integer()
   
   # Box Office ------------------------------------------------------------------
+  output$box_office = page_raw %>%
+    xml_nodes(xpath = "//div[.='Box Office: ']/following-sibling::div") %>%
+    html_text() %>%
+    str_replace_all("[\\,\\$]", "") %>%
+    as.integer()
   
   # Director ------------------------------------------------------------------
+  output$director = page_raw %>%
+    xml_nodes(xpath = "//div[.='Directed By: ']/following-sibling::div") %>%
+    html_text() %>%
+    str_trim()
   
   # Cast ------------------------------------------------------------------
+  cast = page_raw %>%
+    xml_nodes(xpath = "//div[contains(@class, 'castSection')]/div/div/a/span/text()") %>%
+    html_text() %>%
+    str_trim() %>%
+    extract(1:6)
   
+  output[paste("actor",seq(1,6), sep="_")] = cast
+ 
+  return(output) 
 }
-
-
-
-url_extension = "m/departed/"
