@@ -43,3 +43,16 @@ films = data.frame(
   actor_5 = character(),
   actor_6 = character()
 )
+
+
+for (row in 1:nrow(films)) {
+  
+  actor = actors$Name[row]
+  
+  print(actor)
+  
+  
+  
+  
+  
+}
