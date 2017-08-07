@@ -193,3 +193,35 @@ test =
 %>%
   html_table()        
 
+
+
+parse_film = function(url_extension) {
+  
+  page_raw = 
+    glue("https://www.rottentomatoes.com/{url_extension}") %>%
+    read_html()
+  
+  # Tomato Meter ------------------------------------------------------------------
+  
+  test = page_raw %>%
+    xml_nodes(xpath = "//*[@id='scoreStats']/div[contains(@class, 'superPageFontColor')]") %>%
+    html_text() %>%
+    magrittr::extract(1:4) %>%
+    vapply(., function(x){str_replace_all(x,"\\s","")})
+    str_split("\\:", simplify = TRUE) %>%
+    str_trim()
+  
+    str_replace_all("[\t\n\r\v\f]","")
+  # Audience Score ------------------------------------------------------------------
+  
+  # Box Office ------------------------------------------------------------------
+  
+  # Director ------------------------------------------------------------------
+  
+  # Cast ------------------------------------------------------------------
+  
+}
+
+
+
+url_extension = "m/departed/"
