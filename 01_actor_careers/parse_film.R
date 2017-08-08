@@ -1,9 +1,6 @@
-
-
 parse_film = function(url_extension) {
   
   # url_extension = "m/departed/"
-  
   output = list()
   
   output$url = url_extension
@@ -14,7 +11,10 @@ parse_film = function(url_extension) {
     read_html()
   
   # Stats ------------------------------------------------------------------
-  title = page_raw %>% xml_nodes(xpath = "//h1[@data-type='title']") %>% html_text() %>% extract(1)
+  title = page_raw %>%
+   xml_nodes(xpath = "//h1[@data-type='title']") %>%
+   html_text() %>%
+   magrittr::extract(1)
   
   output$year = title %>% str_extract("(?<=\\()\\d+(?=\\))") %>% as.integer()
   output$title = title %>% str_trim() %>% str_replace("\\(\\d+\\)","") %>% str_trim()
@@ -62,9 +62,12 @@ parse_film = function(url_extension) {
     xml_nodes(xpath = "//div[contains(@class, 'castSection')]/div/div/a/span/text()") %>%
     html_text() %>%
     str_trim() %>%
-    extract(1:6)
+    magrittr::extract(1:6) # Collides with Tidyr's extract function
   
   output[paste("actor",seq(1,6), sep="_")] = cast
   
+  output = lapply(output, function(x){ if(length(x)==0) {NA} else {x}})
+
   return(output) 
+
 }
