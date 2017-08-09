@@ -1,14 +1,31 @@
 parse_film = function(url_extension) {
   
+  require(rvest)
+  require(stringr)
+  require(dplyr)
+  require(magrittr)
+  require(glue)
+  
   # url_extension = "m/departed/"
   output = list()
-  
-  output$url = url_extension
-  
+
   # Raw HTML Page ------------------------------------------------------------------
-  page_raw = 
+  page_raw = tryCatch({
     glue("https://www.rottentomatoes.com/{url_extension}") %>%
-    read_html()
+      read_html()
+  }, error = function(e) {
+    return(NA)
+  })
+  
+  if (is.na(page_raw)) {
+    length(output) = 15
+    output = setNames(output, c("url", "year", "title", "reviews", "tomatometer",
+                      "av_rating", "audience", "box_office", "director",
+                      "actor_1","actor_2","actor_3","actor_4","actor_5", "actor_6"))
+    return(output)
+  }
+
+  output$url = url_extension
   
   # Stats ------------------------------------------------------------------
   title = page_raw %>%

@@ -25,6 +25,7 @@ library(glue)
 library(lubridate)
 library(purrr)
 library(dplyr)
+library(parallel)
 
 options(stringsAsFactors = FALSE)
 
@@ -54,84 +55,63 @@ films = data.frame(
   actor_6 = character()
 )
 
-start = Sys.time()
-for (row in 1:1) {
-  
-  cat(paste(glue("Actor: {actor} || DOB: {details$dob} || Number of URLS: {nrow(details$urls)}"),"\n"))  
+start_time = Sys.time()
 
+for (row in 1:nrow(actors)) {
+  
   actor = actors$Name[row]
   
+  # Call the get_actor_details function
   details = get_actor_details(actor)
-
+  if (length(details$url)== 1 && is.na(details$url)) { next }
+  
+  # Log the actor details to the console
+  cat(glue("Actor: {actor} || DOB: {details$dob} || Number of URLS: {nrow(details$urls)}"),"\n") 
+  
   # Add DOB to actor / director table
   actors[row,"dob"] = details$dob
 
   # Get URLS
   urls = details$url %>% distinct(url_extension)
-
+  
   # DRY = DON'T REPEAT YOURSELF
   if ( nrow(films) > 0) {
-    number_1 = nrow(urls)
+    # Remove movies we've already scraped
+    starting_rows = nrow(urls)
     urls = 
       urls %>%
-      anti_join(films$url)
-    number_2 = nrow(urls)
-
-    cat(paste(glue("Saved {number_1-number_2} scrapes!", "\n")))
+      anti_join(films %>% select(url), by = c("url_extension" = "url"))
+    
+    if(starting_rows != nrow(urls)) {
+      cat(glue("Already recorded {starting_rows - nrow(urls)} films!"), "\n")
+    }
+    
+    if (nrow(urls)== 0) {next}
   }
 
-  # Multithread this mfer
-  for (i in 1:nrow(urls)) {
-    cat(paste(glue("Looking at film {urls$url_extension[i]}"), "\n"))
-    this_film = parse_film(urls$url_extension[i])
-    films = rbind(films, this_film)
-  }
-
-  # film_details = parse_film(url_extension) 
-    # %>% # This is a nicely named list
-    # enframe() %>% # Tibble function to convert named lists to DF - creates list columns tho
-    # spread(name, value) %>%
-    # dmap(unlist) # Purrr function to unnest the list columns
-
-}
-stop = Sys.time()
-
-
-
-start = Sys.time()
-for (row in 1:1) {
+  # Initialise the cluster
+  film_list = as.list(urls$url_extension)
+  no_cores = max(detectCores() - 2,1)
+  cl = makeCluster(no_cores)
   
-  cat(paste(glue("Actor: {actor} || DOB: {details$dob} || Number of URLS: {nrow(details$urls)}"),"\n"))  
+  # Multithread the film detail extraction
+  results = parLapply(cl, film_list, parse_film)
 
-  actor = actors$Name[row]
+  # Close the cluster
+  stopCluster(cl)
+ 
+  to_df = do.call(rbind.data.frame, results)
   
-  details = get_actor_details(actor)
-
-  # Add DOB to actor / director table
-  actors[row,"dob"] = details$dob
-
-  # Get URLS
-  urls = details$url %>% distinct(url_extension)
-
-  # DRY = DON'T REPEAT YOURSELF
-  if ( nrow(films) > 0) {
-    number_1 = nrow(urls)
-    urls = 
-      urls %>%
-      anti_join(films$url)
-    number_2 = nrow(urls)
-
-    cat(paste(glue("Saved {number_1-number_2} scrapes!", "\n")))
-  }
-
-  data = foreach(url = urls$url_extension, .combine='rbind') %do% parse_film(url)
-
-  # # Multithread this mfer
-  # for (i in 1:nrow(urls)) {
-  #   cat(paste(glue("Looking at film {urls$url_extension[i]}"), "\n"))
-  #   this_film = parse_film(urls$url_extension[i])
-  #   films = rbind(films, this_film)
-  # }
-
+  films = rbind(films, to_df)
+  
 }
-stop = Sys.time()
+
+end_time = Sys.time()
+
+
+
+
+
+# data = foreach(url = urls$url_extension, .combine='rbind') %do% parse_film(url)
+
+
