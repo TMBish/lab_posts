@@ -57,6 +57,8 @@ films = data.frame(
 
 start_time = Sys.time()
 
+# 1:nrow(actors
+
 for (row in 1:nrow(actors)) {
   
   actor = actors$Name[row]
@@ -107,11 +109,5 @@ for (row in 1:nrow(actors)) {
 }
 
 end_time = Sys.time()
-
-
-
-
-
-# data = foreach(url = urls$url_extension, .combine='rbind') %do% parse_film(url)
 
 
