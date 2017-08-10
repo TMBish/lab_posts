@@ -59,13 +59,13 @@ start_time = Sys.time()
 
 # 1:nrow(actors
 
-for (row in 1:nrow(actors)) {
+for (row in 1:nrow(directors)) {
   
-  actor = actors$Name[row]
+  actor = directors$Name[row]
   
   # Call the get_actor_details function
   details = get_actor_details(actor)
-  if (length(details$url)== 1 && is.na(details$url)) { next }
+  if (length(details$url)== 1 && is.na(details$urls) || nrow(details$urls) == 0) { next }
   
   # Log the actor details to the console
   cat(glue("Actor: {actor} || DOB: {details$dob} || Number of URLS: {nrow(details$urls)}"),"\n") 
@@ -110,4 +110,5 @@ for (row in 1:nrow(actors)) {
 
 end_time = Sys.time()
 
+write_csv(films, "C:/Users/Tom Bishop/Desktop/full_film_data.csv")
 
