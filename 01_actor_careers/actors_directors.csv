@@ -1,4 +1,4 @@
-Name,dob
+name,dob
 Robert De Niro,1943-08-17
 Jack Nicholson,1937-04-22
 Tom Hanks,1956-07-09
@@ -378,7 +378,6 @@ Anne Bancroft,1931-09-17
 Kim Novak,1933-02-13
 Simone Signoret,1921-03-25
 Ellen Page,1987-02-21
-Anna Magnani,1908-03-07
 Judy Holliday,1921-06-21
 Loretta Young,1913-01-06
 Shirley Jones,1934-03-31
@@ -535,7 +534,6 @@ Amber Heard,1986-04-22
 Teresa Palmer,1990-01-01
 Saoirse Ronan,1994-04-12
 Elizabeth Banks,1974-02-10
-Kristen Bell,1980-07-18
 Natalie Dormer,1990-01-01
 Brittany Snow,1986-03-09
 Kate Mara,1990-01-01
@@ -641,7 +639,6 @@ Miranda Richardson,1958-03-03
 Stockard Channing,1944-02-13
 Angela Bassett,1958-08-16
 Mary McDonnell,1952-04-28
-Catherine Deneuve,1943-10-22
 Laura Dern,1967-02-10
 Pauline Collins,1940-09-03
 Isabelle Adjani,1955-06-27
@@ -740,7 +737,6 @@ Lily Tomlin,1939-09-01
 Anna Friel,1976-07-12
 Gloria Stuart,1910-07-04
 Talia Shire,1946-04-25
-Donna Reed,1921-01-27
 Sue Lyon,1946-07-10
 Olivia Newton-John,1948-09-26
 Minnie Driver,1970-01-31
@@ -844,7 +840,6 @@ Ziyi Zhang,1990-01-01
 Amanda Crew,1986-06-05
 Amanda Bynes,1986-04-03
 Lisa Kudrow,1963-07-30
-Neve Campbell,1973-10-03
 Ellen DeGeneres,1958-01-26
 Sofía Vergara,1972-07-10
 Mandy Moore,1984-04-10
@@ -948,12 +943,10 @@ Albert Brooks,1947-07-22
 Macaulay Culkin,1980-08-26
 Sam Elliott,1944-08-09
 Jim Caviezel,1990-01-01
-Paul Scofield,1922-01-21
 Jared Harris,1961-08-24
 Harpo Marx,1888-11-23
 Jason Sudeikis,1975-09-18
 Josh Hartnett,1978-07-21
-Patrick Wilson,1990-01-01
 Cillian Murphy,1976-05-25
 Billy Crudup,1968-07-08
 Christopher Mintz-Plasse,1989-06-20
@@ -1010,7 +1003,6 @@ Stanley Kubrick,1928-07-26
 Martin Scorsese,1942-11-17
 William Wyler,1902-07-01
 Yasujirô Ozu,1903-12-12
-Charles Chaplin,1889-04-16
 Quentin Tarantino,1963-03-27
 Hayao Miyazaki,1941-01-05
 Francis Ford Coppola,1939-04-07
@@ -1030,13 +1022,10 @@ David Lean,1908-03-25
 Jean-Luc Godard,1930-12-03
 Andrei Tarkovsky,1932-04-04
 Elia Kazan,1909-09-07
-Woody Allen,1935-12-01
-Buster Keaton,1895-10-04
 Federico Fellini,1920-01-20
 Satyajit Ray,1921-05-02
 Leonid Gayday,1990-01-01
 Michael Curtiz,1886-12-24
-Clint Eastwood,1930-05-31
 Hrishikesh Mukherjee,1990-01-01
 John Huston,1906-08-05
 Mervyn LeRoy,1900-10-15
@@ -1055,7 +1044,6 @@ Frank Darabont,1959-01-28
 Richard Linklater,1960-07-30
 Robert Zemeckis,1952-05-14
 Emir Kusturica,1954-11-24
-Orson Welles,1915-05-06
 Raoul Walsh,1887-03-11
 Roman Polanski,1933-08-18
 Anurag Kashyap,1972-09-10
@@ -1085,7 +1073,6 @@ Rajkumar Hirani,1928-04-24
 Edmund Goulding,1891-03-20
 Nuri Bilge Ceylan,1990-01-01
 Robert Wise,1914-09-10
-Jean-Luc Godard,1930-12-03
 Krzysztof Kieslowski,1941-06-27
 Rob Reiner,1947-03-06
 Jonathan Demme,1944-02-22
@@ -1170,12 +1157,10 @@ Paul Greengrass,1955-08-13
 Robert Aldrich,1918-08-09
 Alfonso Cuarón,1961-11-28
 George Lucas,1944-05-14
-Roberto Benigni,1952-10-27
 Mamoru Oshii,1951-08-08
 Kaneto Shindô,1990-01-01
 John Woo,1946-09-23
 Luc Besson,1959-03-18
-George Roy Hill,1921-12-21
 Pedro Almodóvar,1949-09-24
 Alain Resnais,1922-06-03
 Danny Boyle,1956-10-20
@@ -1206,7 +1191,6 @@ Paul Thomas Anderson,1970-06-26
 John Sturges,1910-01-03
 Wen Jiang,1990-01-01
 Henry King,1886-01-24
-Vishal Bhardwaj,1990-01-01
 Bozidar 'Bota' Nikolic,1990-01-01
 Isao Takahata,1935-10-29
 Fernando Meirelles,1955-11-09
@@ -1231,7 +1215,6 @@ Hal Ashby,1929-09-02
 Sergei M. Eisenstein,1990-01-01
 Michael Haneke,1942-03-23
 Juan José Campanella,1959-07-19
-Erich von Stroheim,1885-09-22
 William Friedkin,1935-08-29
 Vincente Minnelli,1903-02-28
 Edward Zwick,1952-10-08
