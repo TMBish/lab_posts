@@ -1,0 +1,84 @@
+---
+title: "How Old Actors?"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=FALSE)
+```
+
+## Intro
+
+Stuff and text.
+
+## Data
+
+### Films
+
+```{r}
+library(readr)
+library(dplyr)
+
+films = read_csv("https://raw.githubusercontent.com/TMBish/lab_posts/master/01_actor_careers/full_film_data.csv")
+
+films %>% glimpse()
+
+
+```
+
+### Actors / Directors
+
+```{r}
+
+library(gender)
+library(stringr)
+
+film_folk = read_csv("")
+
+# Grep out first name and dob year for the gender function
+film_folk = 
+  film_folk %>%
+  mutate(
+    first_name = str_extract(name, "(?i)[a-z]+(?=\\s)"),
+    dob_year = 1940
+  )
+  
+# Distinct name, dob combos and predict gender
+genders = 
+  film_folk %>% 
+  distinct(first_name, dob_year) %>%
+  gender_df(name_col = "first_name", year_col = "dob_year") %>%
+  select(name, gender, "dob_year" = year_min)
+
+# Join back the gender back to the main data
+film_folk = 
+  film_folk %>%
+  inner_join(genders)
+
+```
+
+We should sense check the gender mapping. Let's take a random 10 people to check:
+
+```{r}
+
+
+
+
+```
+
+## Measuring Performance
+
+To investigate our hypothesis we need to make a couple of assumptions. Since we don't have an individual actor / director box score (like we would in sporting match) we'll have to assume an actor / director has a tangible affect on the quality of the movie; a relatively safe assumption.
+
+Further, for actors we'll have to limit the data to actors that played an important enough role in the film to affect the overall quality of the film. So while Michael Cera's cameo in *This is the End* was high quality he can't be said to influence the rotten tomatoes rating of the film on his own.
+
+<iframe width="560" height="315" src="https://www.youtube.com/watch?v=qIKPJlKHKxg" frameborder="0" allowfullscreen></iframe>
+
+
+
+
+
+
+
+
+

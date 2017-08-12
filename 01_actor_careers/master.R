@@ -29,12 +29,12 @@ library(parallel)
 
 options(stringsAsFactors = FALSE)
 
-actors = 
-  read_csv("https://raw.githubusercontent.com/TMBish/Stratton/master/data/actors.csv") %>%
-  mutate(dob = ymd(19900101))
+actors = read_csv("https://raw.githubusercontent.com/TMBish/Stratton/master/data/actors.csv")
 
-directors = 
-  read_csv("https://raw.githubusercontent.com/TMBish/Stratton/master/data/directors.csv") %>%
+directors = read_csv("https://raw.githubusercontent.com/TMBish/Stratton/master/data/directors.csv")
+
+film_folk = actors %>%
+  union_all(directors) %>%
   mutate(dob = ymd(19900101))
 
 films = data.frame(
@@ -57,54 +57,53 @@ films = data.frame(
 
 start_time = Sys.time()
 
-# 1:nrow(actors
-
-for (row in 1:nrow(directors)) {
+for (row in 1:nrow(film_folk)) {
   
-  actor = directors$Name[row]
+  person = film_folk$Name[row]
   
   # Call the get_actor_details function
-  details = get_actor_details(actor)
+  details = get_bio(person)
+  
   if (length(details$url)== 1 && is.na(details$urls) || nrow(details$urls) == 0) { next }
   
   # Log the actor details to the console
-  cat(glue("Actor: {actor} || DOB: {details$dob} || Number of URLS: {nrow(details$urls)}"),"\n") 
+  cat(glue("Actor: {person} || DOB: {details$dob} || Number of URLS: {nrow(details$urls)}"),"\n") 
   
   # Add DOB to actor / director table
-  actors[row,"dob"] = details$dob
+  film_folk[row,"dob"] = details$dob
 
   # Get URLS
-  urls = details$url %>% distinct(url_extension)
+  # urls = details$url %>% distinct(url_extension)
   
-  # DRY = DON'T REPEAT YOURSELF
-  if ( nrow(films) > 0) {
-    # Remove movies we've already scraped
-    starting_rows = nrow(urls)
-    urls = 
-      urls %>%
-      anti_join(films %>% select(url), by = c("url_extension" = "url"))
+  # # DRY = DON'T REPEAT YOURSELF
+  # if ( nrow(films) > 0) {
+  #   # Remove movies we've already scraped
+  #   starting_rows = nrow(urls)
+  #   urls = 
+  #     urls %>%
+  #     anti_join(films %>% select(url), by = c("url_extension" = "url"))
     
-    if(starting_rows != nrow(urls)) {
-      cat(glue("Already recorded {starting_rows - nrow(urls)} films!"), "\n")
-    }
+  #   if(starting_rows != nrow(urls)) {
+  #     cat(glue("Already recorded {starting_rows - nrow(urls)} films!"), "\n")
+  #   }
     
-    if (nrow(urls)== 0) {next}
-  }
+  #   if (nrow(urls)== 0) {next}
+  # }
 
-  # Initialise the cluster
-  film_list = as.list(urls$url_extension)
-  no_cores = max(detectCores() - 2,1)
-  cl = makeCluster(no_cores)
+  # # Initialise the cluster
+  # film_list = as.list(urls$url_extension)
+  # no_cores = max(detectCores() - 2,1)
+  # cl = makeCluster(no_cores)
   
-  # Multithread the film detail extraction
-  results = parLapply(cl, film_list, parse_film)
+  # # Multithread the film detail extraction
+  # results = parLapply(cl, film_list, parse_film)
 
-  # Close the cluster
-  stopCluster(cl)
+  # # Close the cluster
+  # stopCluster(cl)
  
-  to_df = do.call(rbind.data.frame, results)
+  # to_df = do.call(rbind.data.frame, results)
   
-  films = rbind(films, to_df)
+  # films = rbind(films, to_df)
   
 }
 

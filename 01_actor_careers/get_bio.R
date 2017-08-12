@@ -1,4 +1,4 @@
-get_actor_details = function(actor) {
+get_bio = function(person) {
   
   require(rvest)
   require(stringr)
@@ -7,8 +7,8 @@ get_actor_details = function(actor) {
   require(lubridate)
   
   # Format URL
-  actor_string = str_replace_all(str_replace_all(tolower(actor), " ", "_"),"[\\-\\.]"," ")
-  celeb_url = sprintf("https://www.rottentomatoes.com/celebrity/%s/", actor_string)
+  person_string = str_replace_all(str_replace_all(tolower(person), " ", "_"),"[\\-\\.]"," ")
+  celeb_url = sprintf("https://www.rottentomatoes.com/celebrity/%s/", person_string)
 
   output_object = tryCatch({
       
