@@ -1,0 +1,92 @@
+---
+title: "How Old Actors?"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=FALSE)
+```
+
+## Intro
+
+Stuff and text.
+
+## Data
+
+### Films
+
+```{r}
+library(readr)
+library(dplyr)
+
+films = read_csv("https://raw.githubusercontent.com/TMBish/lab_posts/master/01_actor_careers/full_film_data.csv") %>%
+  filter(!is.na(title))
+
+films %>% glimpse()
+
+```
+
+### Actors / Directors
+
+```{r}
+
+library(gender)
+library(stringr)
+library(lubridate)
+
+film_folk = read_csv("https://raw.githubusercontent.com/TMBish/lab_posts/master/01_actor_careers/actors_directors.csv")
+
+film_folk[film_folk$dob < as.Date("1880-01-01"), "dob"] = as.Date("1880-01-01")
+
+# Grep out first name and dob year for the gender function
+film_folk = 
+  film_folk %>%
+  mutate(
+    first_name = str_extract(name, "(?i)[a-z]+(?=\\s)"),
+    dob_year = year(dob)
+  )
+  
+# Distinct name, dob combos and predict gender
+genders = 
+  film_folk %>% 
+  distinct(first_name, dob_year) %>%
+  gender_df(name_col = "first_name", year_col = "dob_year") %>%
+  select("first_name" = name, gender, "dob_year" = year_min)
+
+```
+
+We should sense check the gender mapping. Let's take a random 10 people to check:
+
+```{r}
+genders %>%
+  sample_n(10) %>%
+  knitr::kable(caption = "Sense Checking the Gender Mapping")
+
+```
+
+Looks pretty, pretty, pretty good.
+
+```{r}
+# Join back the gender back to the main data
+film_folk = 
+  film_folk %>%
+  left_join(genders)
+
+```
+
+## Measuring Performance
+
+To investigate our hypothesis we need to make a couple of assumptions. Since we don't have an individual actor / director box score (like we would in sporting match) we'll have to assume an actor / director has a tangible affect on the quality of the movie; a relatively safe assumption.
+
+Further - for actors - we'll have to limit the dataset to actors that played an important role in the film to the extent that they affected the overall quality of the film. So while Michael Cera's cameo in *This is the End* was high quality it can't be said that he influenced the rotten tomatoes rating of the film on his own.
+
+<iframe width="560" height="315" src="https://www.youtube.com/v/qIKPJlKHKxg" frameborder="0" allowfullscreen></iframe>
+
+
+
+
+
+
+
+
+
