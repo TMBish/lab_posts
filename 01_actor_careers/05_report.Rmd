@@ -1,6 +1,8 @@
 ---
 title: "How Old Actors?"
-output: html_document
+output: 
+  html_document:
+    code_folding: hide
 ---
 
 ```{r setup, include=FALSE}
@@ -18,11 +20,10 @@ Stuff and text.
 ```{r}
 library(readr)
 library(dplyr)
+library(tidyr)
 
-films = read_csv("https://raw.githubusercontent.com/TMBish/lab_posts/master/01_actor_careers/full_film_data.csv") %>%
+films = read_csv("https://raw.githubusercontent.com/TMBish/lab_posts/master/01_actor_careers/00_full_film_data.csv") %>%
   filter(!is.na(title))
-
-films %>% glimpse()
 
 ```
 
@@ -34,7 +35,7 @@ library(gender)
 library(stringr)
 library(lubridate)
 
-film_folk = read_csv("https://raw.githubusercontent.com/TMBish/lab_posts/master/01_actor_careers/actors_directors.csv")
+film_folk = read_csv("https://raw.githubusercontent.com/TMBish/lab_posts/master/01_actor_careers/00_actors_directors.csv")
 
 film_folk[film_folk$dob < as.Date("1880-01-01"), "dob"] = as.Date("1880-01-01")
 
@@ -74,6 +75,141 @@ film_folk =
 
 ```
 
+## Gender Gap
+
+Some text.
+Some text.
+Some text.
+Some text.Some text.
+Some text.
+Some text.
+Some text.
+Some text.
+Some text.
+Some text.
+
+```{r}
+library(highcharter)
+tmbish = 
+  hc_theme(
+    chart = list(
+      backgroundColor = list("white"),
+      style = list(
+        fontFamily = "Droid Sans"
+      )
+    ),
+    colors = list("#414141", "#FF6A5C", "#CCDFC8", "#056571"),
+    title = list(
+      style = list(fontWeight = "bold", color = "#414141"),
+      align = "left"
+    ),
+    xAxis = list(
+      gridLineColor = "#2196F3",
+      lineColor = "#2196F3",
+      gridLineWidth = 0.5,
+      lineWidth = 0,
+      title = list(style = list(fontWeight = "bold"))
+    ),
+    yAxis = list(
+      gridLineColor = "#2196F3",
+      lineColor = "#2196F3",
+      gridLineWidth = 0.5,
+      lineWidth = 0,
+      title = list(style = list(weight = "bold"))
+    ),
+    subtitle = list(
+      style = list(fontStyle = "italic", color ="#414141"), 
+      align = "left"
+    ),
+    tooltip = list(
+      borderWidth = 0,
+      shape = "square",
+      valueDecimals = 2
+    )
+  )
+
+
+volume_data =
+  films %>% 
+  select(title, year, tomatometer, director, actor_1:actor_3) %>%
+  gather("role", "name", director, actor_1:actor_3) %>%
+  mutate(role = ifelse(role == "director", "Director", "Actor")) %>%
+  inner_join(film_folk) %>%
+  mutate(
+    age_at_production = year - dob_year
+  ) %>%
+  filter(between(age_at_production, 10,100)) %>%
+  select(name, gender, dob_year, age_at_production, year, role, tomatometer)
+
+  temp = 
+    volume_data %>%
+    filter(
+      !is.na(gender)
+    ) %>%
+    mutate(
+      category = case_when(
+        role == "Director" ~ "director",
+        gender == "male" ~ "male_actor",
+        TRUE ~ "female_actor"
+      )
+    ) %>% 
+    group_by(category, age_at_production) %>%
+    summarise(films = n()) %>%
+    group_by(category) %>%
+    mutate(percentage = films / sum(films))
+
+```
+
+<div id = "tester">
+```{r}
+chart_data = 
+temp %>%
+select(-films) %>%
+spread(category, percentage) %>%
+mutate(
+  director_cdf = cumsum(ifelse(!is.na(director), director, 0)),
+  female_actor_cdf = cumsum(ifelse(!is.na(female_actor), female_actor, 0)),
+  male_actor_cdf = cumsum(ifelse(!is.na(male_actor), male_actor, 0))
+)
+
+
+female_cdf = chart_data$female_actor_cdf
+female_pdf = chart_data$female_actor
+male_cdf = chart_data$male_actor_cdf
+male_pdf = chart_data$male_actor
+dir_cdf = chart_data$director_cdf %>% round(2)
+dir_pdf = chart_data$director
+
+chart = 
+  highchart() %>%
+  hc_add_theme(tmbish) %>%
+  hc_xAxis(
+    categories = chart_data$age_at_production,
+    title = list(text = "Age at Production")
+  ) %>%
+  hc_yAxis(
+    labels = list(formatter = JS("function(){return(Math.round(this.value * 1000) / 10 + '%')}"))
+  ) %>%
+  hc_title(text = "Female actors") %>%
+  hc_subtitle(text = "Comparing male actors, (male) directors and female actors") %>%
+  hc_add_series(name = "Director", type = "spline", data = chart_data$director) %>%
+  hc_add_series(name = "Male Actor", type = "spline", data = chart_data$male_actor) %>%
+  hc_add_series(
+    name = "Female Actor",
+    type = "area",
+    data = chart_data$female_actor,
+    zIndex = -10,
+    marker = list(enabled = FALSE),
+    fillOpacity = 0.5
+  )
+
+chart
+```
+</div>
+
+<button id = "button">Button</button>
+
+
 ## Measuring Performance
 
 To investigate our hypothesis we need to make a couple of assumptions. Since we don't have an individual actor / director box score (like we would in sporting match) we'll have to assume an actor / director has a tangible affect on the quality of the movie; a relatively safe assumption.
@@ -82,11 +218,29 @@ Further - for actors - we'll have to limit the dataset to actors that played an 
 
 <iframe width="560" height="315" src="https://www.youtube.com/v/qIKPJlKHKxg" frameborder="0" allowfullscreen></iframe>
 
+## Housekeeping
 
 
 
+<script>
 
+$(document).ready(function() {
+    $("#button").click(function(){
+    
+        var chart=$("#tester").find(".highchart").highcharts();
+        
+        if (chart.yAxis[0].getExtremes().dataMax == 1) {
+        
+        
+        } else {
+        
+          chart.yAxis[0].setExtremes(0,`1`);
+          data = `dir_cdf`;
+          alert(data);
+          <!--chart.series[0].setData(`JS(paste0("[", dir_cdf %>% paste(collapse = ","), "]"))`); -->
+        };
+        
+    }); 
+});
 
-
-
-
+</script>
