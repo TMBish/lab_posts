@@ -1,5 +1,5 @@
 ---
-title: "How Old Actors?"
+title: "Test RMD"
 output: 
   html_document:
     code_folding: hide
@@ -173,12 +173,20 @@ mutate(
 )
 
 
-female_cdf = chart_data$female_actor_cdf
-female_pdf = chart_data$female_actor
-male_cdf = chart_data$male_actor_cdf
-male_pdf = chart_data$male_actor
-dir_cdf = chart_data$director_cdf %>% round(2)
-dir_pdf = chart_data$director
+convert_js_vec = function(vec) {
+  
+  js_string = vec %>% round(2) %>% paste(collapse = ",")
+  
+  return(JS( paste0("[", js_string, "]") ))
+  
+}
+
+female_cdf = chart_data$female_actor_cdf %>% convert_js_vec()
+female_pdf = chart_data$female_actor %>% convert_js_vec()
+male_cdf = chart_data$male_actor_cdf %>% convert_js_vec()
+male_pdf = chart_data$male_actor %>% convert_js_vec()
+dir_cdf = chart_data$director_cdf %>% convert_js_vec()
+dir_pdf = chart_data$director %>% convert_js_vec()
 
 chart = 
   highchart() %>%
@@ -234,10 +242,10 @@ $(document).ready(function() {
         
         } else {
         
-          chart.yAxis[0].setExtremes(0,`1`);
-          data = `dir_cdf`;
-          alert(data);
-          <!--chart.series[0].setData(`JS(paste0("[", dir_cdf %>% paste(collapse = ","), "]"))`); -->
+          chart.yAxis[0].setExtremes(0,`r 1`);
+          var dat = `r JS(paste0("[", dir_cdf %>% paste(collapse=",") , "]") )`;
+          alert(dat);
+          chart.series[0].setData(dat);
         };
         
     }); 
