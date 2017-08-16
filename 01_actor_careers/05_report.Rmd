@@ -31,28 +31,28 @@ films = read_csv("https://raw.githubusercontent.com/TMBish/lab_posts/master/01_a
 
 ```{r}
 
-library(gender)
-library(stringr)
-library(lubridate)
-
-film_folk = read_csv("https://raw.githubusercontent.com/TMBish/lab_posts/master/01_actor_careers/00_actors_directors.csv")
-
-film_folk[film_folk$dob < as.Date("1880-01-01"), "dob"] = as.Date("1880-01-01")
-
-# Grep out first name and dob year for the gender function
-film_folk = 
-  film_folk %>%
-  mutate(
-    first_name = str_extract(name, "(?i)[a-z]+(?=\\s)"),
-    dob_year = year(dob)
-  )
-  
-# Distinct name, dob combos and predict gender
-genders = 
-  film_folk %>% 
-  distinct(first_name, dob_year) %>%
-  gender_df(name_col = "first_name", year_col = "dob_year") %>%
-  select("first_name" = name, gender, "dob_year" = year_min)
+# library(gender)
+# library(stringr)
+# library(lubridate)
+# 
+# film_folk = read_csv("https://raw.githubusercontent.com/TMBish/lab_posts/master/01_actor_careers/00_actors_directors.csv")
+# 
+# film_folk[film_folk$dob < as.Date("1880-01-01"), "dob"] = as.Date("1880-01-01")
+# 
+# # Grep out first name and dob year for the gender function
+# film_folk = 
+#   film_folk %>%
+#   mutate(
+#     first_name = str_extract(name, "(?i)[a-z]+(?=\\s)"),
+#     dob_year = year(dob)
+#   )
+#   
+# # Distinct name, dob combos and predict gender
+# genders = 
+#   film_folk %>% 
+#   distinct(first_name, dob_year) %>%
+#   gender_df(name_col = "first_name", year_col = "dob_year") %>%
+#   select("first_name" = name, gender, "dob_year" = year_min)
 
 ```
 
@@ -131,8 +131,8 @@ tmbish =
 
 volume_data =
   films %>% 
-  select(title, year, tomatometer, director, actor_1:actor_3) %>%
-  gather("role", "name", director, actor_1:actor_3) %>%
+  select(title, year, tomatometer, director, actor_1:actor_6) %>%
+  gather("role", "name", director, actor_1:actor_6) %>%
   mutate(role = ifelse(role == "director", "Director", "Actor")) %>%
   inner_join(film_folk) %>%
   mutate(
@@ -160,27 +160,31 @@ volume_data =
 
 ```
 
-<div id = "tester">
+<div id = "age_series_chart">
 ```{r}
 chart_data = 
 temp %>%
 select(-films) %>%
 spread(category, percentage) %>%
 mutate(
-  director_cdf = cumsum(ifelse(!is.na(director), director, 0)),
-  female_actor_cdf = cumsum(ifelse(!is.na(female_actor), female_actor, 0)),
-  male_actor_cdf = cumsum(ifelse(!is.na(male_actor), male_actor, 0))
+  director = ifelse(!is.na(director), director, 0),
+  female_actor = ifelse(!is.na(female_actor), female_actor, 0),
+  male_actor = ifelse(!is.na(male_actor), male_actor, 0),
+  director_cdf = cumsum(director),
+  female_actor_cdf = cumsum(female_actor),
+  male_actor_cdf = cumsum(male_actor)
 )
 
 
 convert_js_vec = function(vec) {
   
-  js_string = vec %>% round(2) %>% paste(collapse = ",")
+  js_string = vec %>% round(4) %>% paste(collapse = ",")
   
   return(JS( paste0("[", js_string, "]") ))
   
 }
 
+# For the javascript client side interactivity on the age series chart
 female_cdf = chart_data$female_actor_cdf %>% convert_js_vec()
 female_pdf = chart_data$female_actor %>% convert_js_vec()
 male_cdf = chart_data$male_actor_cdf %>% convert_js_vec()
@@ -191,17 +195,31 @@ dir_pdf = chart_data$director %>% convert_js_vec()
 chart = 
   highchart() %>%
   hc_add_theme(tmbish) %>%
+  hc_chart(
+    animation = list(duration = 2000)
+  ) %>%
   hc_xAxis(
     categories = chart_data$age_at_production,
     title = list(text = "Age at Production")
   ) %>%
   hc_yAxis(
+    title = list(text = "Probablity Density"),
     labels = list(formatter = JS("function(){return(Math.round(this.value * 1000) / 10 + '%')}"))
   ) %>%
   hc_title(text = "Female actors") %>%
   hc_subtitle(text = "Comparing male actors, (male) directors and female actors") %>%
-  hc_add_series(name = "Director", type = "spline", data = chart_data$director) %>%
-  hc_add_series(name = "Male Actor", type = "spline", data = chart_data$male_actor) %>%
+  hc_add_series(
+    name = "Director", 
+    type = "spline",
+    data = chart_data$director,
+    marker = list(enabled = FALSE)
+  ) %>%
+  hc_add_series(
+    name = "Male Actor",
+    type = "spline",
+    data = chart_data$male_actor,
+    marker = list(enabled = FALSE)
+  ) %>%
   hc_add_series(
     name = "Female Actor",
     type = "area",
@@ -215,16 +233,22 @@ chart
 ```
 </div>
 
-<button id = "button">Button</button>
-
+<button id = "update_age_series"> Show Cumulative Distribution </button>
 
 ## Measuring Performance
 
-To investigate our hypothesis we need to make a couple of assumptions. Since we don't have an individual actor / director box score (like we would in sporting match) we'll have to assume an actor / director has a tangible affect on the quality of the movie; a relatively safe assumption.
+To investigate our hypothesis we must make a couple of assumptions. Since we don't have an individual actor / director performance (like we would have for players in a sporting contest for example) we'll have to assume an actor or director can have a tangible affect on the quality of the movie they appear in; there are obviously many other factors but this seems like a relatively safe assumption.
 
-Further - for actors - we'll have to limit the dataset to actors that played an important role in the film to the extent that they affected the overall quality of the film. So while Michael Cera's cameo in *This is the End* was high quality it can't be said that he influenced the rotten tomatoes rating of the film on his own.
+Further - for actors - we'll have to limit the dataset to actors that played an important role in the film. They  need to be prominent enough so as to affect the overall quality of the film. So while Michael Cera's cameo in *This is the End* was quality it can't be said that he influenced the rotten tomatoes rating of the film on his own.
 
-<iframe width="560" height="315" src="https://www.youtube.com/v/qIKPJlKHKxg" frameborder="0" allowfullscreen></iframe>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/qIKPJlKHKxg" frameborder="0" allowfullscreen></iframe>
+
+After looking through a few rotten tomatoes pages it seems limiting to the top 3 actors in a given film is a good rule of thumb for at least partially influncial performances.
+
+### Average Performance by Age
+
+
+
 
 ## Housekeeping
 
@@ -232,23 +256,43 @@ Further - for actors - we'll have to limit the dataset to actors that played an 
 
 <script>
 
-$(document).ready(function() {
-    $("#button").click(function(){
+  $(document).ready(function() {
+  
+  var show_cdf = false;
+  
+    $("#update_age_series").click(function(){
     
-        var chart=$("#tester").find(".highchart").highcharts();
+        var chart=$("#age_series_chart").find(".highchart").highcharts();
         
-        if (chart.yAxis[0].getExtremes().dataMax == 1) {
+        if (show_cdf) {
         
-        
+          chart.yAxis[0].setExtremes(0,null);
+          chart.yAxis[0].setTitle({text:"Probability Density", redraw:false});
+          dir_pdf = `r dir_pdf`;
+          female_pdf = `r female_pdf`;
+          male_pdf = `r male_pdf`;
+          chart.series[0].setData(dir_pdf);
+          chart.series[1].setData(male_pdf);
+          chart.series[2].setData(female_pdf);
+          $("#update_age_series").html("Show Cumulative Distribution");
+          
         } else {
         
-          chart.yAxis[0].setExtremes(0,`r 1`);
-          var dat = `r JS(paste0("[", dir_cdf %>% paste(collapse=",") , "]") )`;
-          alert(dat);
-          chart.series[0].setData(dat);
+          chart.yAxis[0].setExtremes(0,1);
+          chart.yAxis[0].setTitle({text:"Cumulative Probability", redraw:false});
+          dir_cdf = `r dir_cdf`;
+          female_cdf = `r female_cdf`;
+          male_cdf = `r male_cdf`;
+          chart.series[0].setData(dir_cdf);
+          chart.series[1].setData(male_cdf);
+          chart.series[2].setData(female_cdf);
+        
+          $("#update_age_series").html("Show Density");
         };
         
+        show_cdf = !show_cdf
+        
     }); 
-});
+  });
 
 </script>

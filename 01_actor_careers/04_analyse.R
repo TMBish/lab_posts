@@ -51,8 +51,8 @@ dir_data =
 
 volume_data =
   films %>% 
-  select(title, year, tomatometer, director, actor_1:actor_3) %>%
-  gather("role", "name", director, actor_1:actor_3) %>%
+  select(title, year, tomatometer, director, actor_1:actor_6) %>%
+  gather("role", "name", director, actor_1:actor_6) %>%
   mutate(role = ifelse(role == "director", "Director", "Actor")) %>%
   inner_join(film_folk) %>%
   mutate(
@@ -177,12 +177,72 @@ volume_data =
 	    fillOpacity = 0.5
 	  )
 
- # Volumes By Age --------------------------------------------------------------------
+ # Ratings By Age --------------------------------------------------------------------
 
-
+rating_data =
+  films %>% 
+  select(title, year, tomatometer, director, actor_1) %>%
+  gather("role", "name", director, actor_1) %>%
+  mutate(role = ifelse(role == "director", "Director", "Actor")) %>%
+  inner_join(film_folk) %>%
+  mutate(
+    age_at_production = year - dob_year
+  ) %>%
+  filter(between(age_at_production, 18,85)) %>%
+  select(name, gender, dob_year, age_at_production, year, role, tomatometer)
 
 
 temp = 
-	volume_data %>%
-	group_by(year) %>%
-	summarise(av_score = mean(tomatometer))
+	rating_data %>%
+	filter(
+		!is.na(gender)
+	) %>%
+	mutate(
+		category = case_when(
+			role == "Director" ~ "director",
+			gender == "male" ~ "male_actor",
+			TRUE ~ "female_actor"
+		)
+	) %>% 
+	group_by(category, age_at_production) %>%
+	summarise(rating = mean(tomatometer))
+
+chart_data = 
+	temp %>%
+	spread(category, rating)
+
+chart = 
+  highchart() %>%
+  hc_add_theme(tmbish) %>%
+  hc_chart(
+    animation = list(duration = 2000)
+  ) %>%
+  hc_xAxis(
+    categories = chart_data$age_at_production,
+    title = list(text = "Age at Production")
+  ) %>%
+  hc_yAxis(
+    title = list(text = "Probablity Density")
+  ) %>%
+  hc_title(text = "Female actors") %>%
+  hc_subtitle(text = "Comparing male actors, (male) directors and female actors") %>%
+  hc_add_series(
+    name = "Director", 
+    type = "spline",
+    data = chart_data$director,
+    marker = list(enabled = FALSE)
+  ) %>%
+  hc_add_series(
+    name = "Male Actor",
+    type = "spline",
+    data = chart_data$male_actor,
+    marker = list(enabled = FALSE)
+  ) %>%
+  hc_add_series(
+    name = "Female Actor",
+    type = "area",
+    data = chart_data$female_actor,
+    zIndex = -10,
+    marker = list(enabled = FALSE),
+    fillOpacity = 0.5
+  )
