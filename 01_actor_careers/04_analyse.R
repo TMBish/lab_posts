@@ -8,11 +8,11 @@ library(stringr)
 library(lubridate)
 
 # Data --------------------------------------------------------------------
-films = read_csv("https://raw.githubusercontent.com/TMBish/lab_posts/master/01_actor_careers/full_film_data.csv") %>%
+films = read_csv("https://raw.githubusercontent.com/TMBish/lab_posts/master/01_actor_careers/00_full_film_data.csv") %>%
   filter(!is.na(title))
 
 
-film_folk = read_csv("https://raw.githubusercontent.com/TMBish/lab_posts/master/01_actor_careers/actors_directors.csv")
+film_folk = read_csv("https://raw.githubusercontent.com/TMBish/lab_posts/master/01_actor_careers/00_actors_directors.csv")
 film_folk[film_folk$dob < as.Date("1880-01-01"), "dob"] = as.Date("1880-01-01")
 
 # Grep out first name and dob year for the gender function
@@ -181,35 +181,32 @@ volume_data =
 
 rating_data =
   films %>% 
-  select(title, year, tomatometer, director, actor_1) %>%
-  gather("role", "name", director, actor_1) %>%
-  mutate(role = ifelse(role == "director", "Director", "Actor")) %>%
+  select(title, year, tomatometer, director, actor_1:actor_3) %>%
+  gather("role", "name", director, actor_1:actor_3) %>%
   inner_join(film_folk) %>%
+  filter(!is.na(gender)) %>%
   mutate(
-    age_at_production = year - dob_year
-  ) %>%
-  filter(between(age_at_production, 18,85)) %>%
-  select(name, gender, dob_year, age_at_production, year, role, tomatometer)
-
-
-temp = 
-	rating_data %>%
-	filter(
-		!is.na(gender)
-	) %>%
-	mutate(
-		category = case_when(
-			role == "Director" ~ "director",
+    age_at_production = year - dob_year,
+    category = case_when(
+			role == "director" ~ "director",
 			gender == "male" ~ "male_actor",
 			TRUE ~ "female_actor"
-		)
-	) %>% 
-	group_by(category, age_at_production) %>%
-	summarise(rating = mean(tomatometer))
-
-chart_data = 
-	temp %>%
-	spread(category, rating)
+	)
+  ) %>%
+  filter(between(age_at_production, 15,79)) %>%
+  select(name, gender, age_at_production, category, tomatometer) %>%
+  group_by(name) %>% 
+  mutate(
+  	average_tomato  = mean(tomatometer),
+  	films = n()
+  ) %>% ungroup() %>%
+  filter(films >= 10) %>%
+  mutate(
+  	age_bucket =  paste(round(age_at_production/5) *5, "-", round(age_at_production/5) *5 + 5),
+  	index = tomatometer / average_tomato) %>%
+  group_by(category, age_bucket) %>%
+  summarise(rating = mean(index)) %>%
+  spread(category, rating)
 
 chart = 
   highchart() %>%
@@ -218,7 +215,7 @@ chart =
     animation = list(duration = 2000)
   ) %>%
   hc_xAxis(
-    categories = chart_data$age_at_production,
+    categories = rating_data$age_bucket,
     title = list(text = "Age at Production")
   ) %>%
   hc_yAxis(
@@ -228,21 +225,19 @@ chart =
   hc_subtitle(text = "Comparing male actors, (male) directors and female actors") %>%
   hc_add_series(
     name = "Director", 
-    type = "spline",
-    data = chart_data$director,
+    type = "line",
+    data = rating_data$director,
     marker = list(enabled = FALSE)
   ) %>%
   hc_add_series(
     name = "Male Actor",
-    type = "spline",
-    data = chart_data$male_actor,
+    type = "line",
+    data = rating_data$male_actor,
     marker = list(enabled = FALSE)
   ) %>%
   hc_add_series(
     name = "Female Actor",
-    type = "area",
-    data = chart_data$female_actor,
-    zIndex = -10,
-    marker = list(enabled = FALSE),
-    fillOpacity = 0.5
+    type = "line",
+    data = rating_data$female_actor,
+    marker = list(enabled = FALSE)
   )
