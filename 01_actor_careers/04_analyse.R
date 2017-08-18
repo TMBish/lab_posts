@@ -193,20 +193,27 @@ rating_data =
 			TRUE ~ "female_actor"
 	)
   ) %>%
-  filter(between(age_at_production, 15,79)) %>%
+  filter(between(age_at_production, 15,85)) %>%
   select(name, gender, age_at_production, category, tomatometer) %>%
   group_by(name) %>% 
   mutate(
   	average_tomato  = mean(tomatometer),
   	films = n()
   ) %>% ungroup() %>%
-  filter(films >= 10) %>%
+  filter(films >= 5) %>%
   mutate(
-  	age_bucket =  paste(round(age_at_production/5) *5, "-", round(age_at_production/5) *5 + 5),
   	index = tomatometer / average_tomato) %>%
-  group_by(category, age_bucket) %>%
+  group_by(category, age_at_production) %>%
   summarise(rating = mean(index)) %>%
   spread(category, rating)
+
+# LOESS Trend Line
+loess_fit = loess(value ~ age_at_production , 
+                  data = rating_data %>% gather("role", "value", -age_at_production)
+                  # %>% group_by(age_at_production) %>% summarise(value = mean(value, na.rm = TRUE))
+                  )
+	
+predictions = loess_fit %>% predict(seq(15,85))
 
 chart = 
   highchart() %>%
@@ -215,29 +222,41 @@ chart =
     animation = list(duration = 2000)
   ) %>%
   hc_xAxis(
-    categories = rating_data$age_bucket,
+    categories = rating_data$age_at_production,
     title = list(text = "Age at Production")
   ) %>%
   hc_yAxis(
-    title = list(text = "Probablity Density")
+    title = list(text = "Probablity Density"),
+    min = 0.6
   ) %>%
   hc_title(text = "Female actors") %>%
   hc_subtitle(text = "Comparing male actors, (male) directors and female actors") %>%
   hc_add_series(
-    name = "Director", 
-    type = "line",
+    name = "Director",
+    type = "scatter",
     data = rating_data$director,
-    marker = list(enabled = FALSE)
-  ) %>%
+    marker = list(radius = 3, symbol = "circle")
+    ) %>%
   hc_add_series(
     name = "Male Actor",
-    type = "line",
+    type = "scatter",
     data = rating_data$male_actor,
-    marker = list(enabled = FALSE)
-  ) %>%
+    marker = list(radius = 3, symbol = "circle")
+    ) %>%
   hc_add_series(
     name = "Female Actor",
-    type = "line",
+    type = "scatter",
     data = rating_data$female_actor,
+    marker = list(radius = 3, symbol = "circle")
+    
+    ) %>%
+  hc_add_series(
+    name = "Trend",
+    type = "spline",
+    data = predictions,
+    color = "#000000",
     marker = list(enabled = FALSE)
   )
+
+
+
