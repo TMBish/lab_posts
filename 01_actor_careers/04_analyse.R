@@ -12,7 +12,7 @@ films = read_csv("https://raw.githubusercontent.com/TMBish/lab_posts/master/01_a
   filter(!is.na(title))
 
 
-film_folk = read_csv("https://raw.githubusercontent.com/TMBish/lab_posts/master/01_actor_careers/00_actors_directors.csv")
+film_folk=read_csv("https://raw.githubusercontent.com/TMBish/lab_posts/master/01_actor_careers/00_actors_directors.csv")
 film_folk[film_folk$dob < as.Date("1880-01-01"), "dob"] = as.Date("1880-01-01")
 
 # Grep out first name and dob year for the gender function
@@ -33,6 +33,8 @@ genders =
 film_folk = 
   film_folk %>%
   left_join(genders)
+
+x = 19
 
  # The deal with directors? --------------------------------------------------------------------
 dir_data =
@@ -75,43 +77,6 @@ volume_data =
 	ggplot(data = temp) +
 		geom_bar(aes(x = age_at_production)) +
 		facet_grid(gender ~ .)
-
-	# Highcharts
-	var = "Actor"
-	temp = 
-		volume_data %>%
-		filter(
-			role == var,
-			!is.na(gender)
-		) %>%
-		group_by(gender, age_at_production) %>%
-		summarise(films = n()) %>%
-		group_by(gender) %>%
-		mutate(percentage = films / sum(films))
-
-	chart = hchart(temp, "column", hcaes(x = age_at_production, y = percentage, group = gender)) %>%
-  		hc_add_theme(tmbish)
-
-  	# Including directors as a category
-	temp = 
-		volume_data %>%
-		filter(
-			!is.na(gender)
-		) %>%
-		mutate(
-			category = case_when(
-				role == "Director" ~ "director",
-				gender == "male" ~ "male_actor",
-				TRUE ~ "female_actor"
-			)
-		) %>% 
-		group_by(category, age_at_production) %>%
-		summarise(films = n()) %>%
-		group_by(category) %>%
-		mutate(percentage = films / sum(films))
-
-	chart = hchart(temp, "spline", hcaes(x = age_at_production, y = percentage, group = category)) %>%
-  		hc_add_theme(tmbish)
 
   	# PDF
   	chart_data = 
@@ -248,7 +213,6 @@ chart =
     type = "scatter",
     data = rating_data$female_actor,
     marker = list(radius = 3, symbol = "circle")
-    
     ) %>%
   hc_add_series(
     name = "Trend",
@@ -257,6 +221,92 @@ chart =
     color = "#000000",
     marker = list(enabled = FALSE)
   )
+
+
+# Indivdual Actor Performances
+
+individual_graph = function(actor) {
+  
+  rating_data = 
+    films %>% 
+    select(title, year, tomatometer, director, actor_1:actor_3) %>%
+    gather("role", "name", director, actor_1:actor_3) %>%
+    inner_join(film_folk) %>%
+    filter(
+      name == actor
+    ) %>%
+    mutate(
+      age_at_production = year - dob_year
+    ) %>%
+    filter(between(age_at_production, 15,85)) %>%
+    select(title, name, gender, age_at_production, tomatometer) %>%
+    group_by(name) %>% 
+    mutate(
+      average_tomato  = mean(tomatometer)
+    ) %>% 
+    ungroup() %>%
+    mutate(
+      index = tomatometer / average_tomato
+    ) %>%
+    arrange(age_at_production)
+  
+  chart_data = rating_data %>%
+    group_by(age_at_production) %>%
+    summarise(index = mean(index))
+  
+  smoother = loess(index ~ age_at_production , 
+                               data = chart_data)
+  
+  ages = seq(min(chart_data$age_at_production),max(chart_data$age_at_production))
+  
+  smoothed_points = smoother %>% predict(ages)
+  global_trend = loess_fit %>% predict(ages)
+  
+  
+  output = 
+    highchart() %>%
+    hc_add_theme(tmbish) %>%
+    hc_chart(
+      animation = list(duration = 2000)
+    ) %>%
+    hc_xAxis(
+      categories = ages,
+      title = list(text = "Age at Production")
+    ) %>%
+    hc_yAxis(
+      title = list(text = "Probablity Density"),
+      min = 0.6
+    ) %>%
+    hc_title(text = "Female actors") %>%
+    hc_subtitle(text = "Comparing male actors, (male) directors and female actors") %>%
+    hc_add_series(
+      name = "Index",
+      type = "scatter",
+      data = chart_data$index,
+      marker = list(radius = 3, fillColor = "#FF6A5C", symbol = "circle")
+    ) %>%
+    hc_add_series(
+      name = "This Actor's Trend",
+      type = "spline",
+      data = smoothed_points,
+      color = "#000000",
+      marker = list(enabled = FALSE)
+    ) %>%
+    hc_add_series(
+      name = "Global Trend",
+      type = "spline",
+      data = global_trend,
+      color = "#000000",
+      marker = list(enabled = FALSE)
+    )
+  
+  return(output)
+  
+}
+
+de_niro = individual_graph("Robert De Niro")
+meryl = individual_graph("Meryl Streep")
+sandler = individual_graph("Adam Sandler")
 
 
 
