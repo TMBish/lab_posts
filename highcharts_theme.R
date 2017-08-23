@@ -14,18 +14,19 @@ high_tmbish = function() {
         align = "left"
       ),
       xAxis = list(
-        gridLineColor = "#011627",
-        lineColor = "#011627",
-        gridLineWidth = 0.1,
-        lineWidth = 1,
+        lineWidth = 1, lineColor = "#011627",
+        gridLineWidth = 0.2, gridLineColor = "#011627", gridLineDashStyle = "LongDash",
         title = list(style = list(fontWeight = "bold"))
       ),
       yAxis = list(
-        gridLineColor = "#011627",
-        lineColor = "#011627",
-        gridLineWidth = 0.1,
-        lineWidth = 1,
-        title = list(style = list(fontWeight = "bold"))
+        lineWidth = 1, lineColor = "#011627",
+        gridLineWidth = 0.2, gridLineColor = "#011627", gridLineDashStyle = "LongDash",
+        minorGridLineWidth = 0.1, minorGridLineColor = "#011627",
+        title = list(style = list(fontWeight = "bold")),
+        tickColor = "#011627",
+        tickLength = 10,
+        minorTickLength = 5, minorTickWidth = 1
+        
       ),
       subtitle = list(
         style = list(fontStyle = "italic", color ="#414141"), 
@@ -57,7 +58,6 @@ high_tmbish = function() {
         href = "https://github.com/TMBish/lab_posts/blob/master/highcharts_theme.R",
         text = "My schmick highcharts theme"
       )
-      
     )
-  
 }
+
