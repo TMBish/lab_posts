@@ -32,6 +32,9 @@ library(highcharter)
 # Rmarkdown Options
 knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=FALSE)
 
+# For reproducibility
+set.seed(123)
+
 # Convert an R vector to string JS vector
 convert_js_vec = function(vec) {
   js_string = vec %>% round(4) %>% paste(collapse = ",")
@@ -39,7 +42,7 @@ convert_js_vec = function(vec) {
 }
 
 # Highcharts theme
-source()
+source("https://raw.githubusercontent.com/TMBish/lab_posts/master/highcharts_theme.R")
 tmbish = high_tmbish()
 ```
 
@@ -69,7 +72,7 @@ actor_1:actor_6 | The 6 top actors according to rotten tomatoes internal ranking
 We'll load and take a peek at the film dataset:
 
 ```{r}
-
+# Load in films data from Github Repo
 films = read_csv("https://raw.githubusercontent.com/TMBish/lab_posts/master/01_actor_careers/00_full_film_data.csv") %>% filter(!is.na(title))
 
 ```
@@ -82,44 +85,41 @@ Unfortunately, because the Rotten Tomatoes devs are a bunch of politically corre
 
 ```{r}
 
-# library(gender)
-# library(stringr)
-# library(lubridate)
-# 
-# film_folk = read_csv("https://raw.githubusercontent.com/TMBish/lab_posts/master/01_actor_careers/00_actors_directors.csv")
-# 
-# # Clean some data quality issues on the DOB
-# film_folk[film_folk$dob < as.Date("1880-01-01"), "dob"] = as.Date("1880-01-01")
-# 
-# # Grep out first name and dob year for the gender function
-# film_folk =
-#   film_folk %>%
-#   mutate(
-#     first_name = str_extract(name, "(?i)[a-z]+(?=\\s)"),
-#     dob_year = year(dob)
-#   )
-# 
-# # Distinct name, dob combos and predict gender
-# genders =
-#   film_folk %>%
-#   distinct(first_name, dob_year) %>%
-#   gender_df(name_col = "first_name", year_col = "dob_year") %>%
-#   select("first_name" = name, gender, "dob_year" = year_min)
+library(gender)
+library(stringr)
+library(lubridate)
+
+film_folk = read_csv("https://raw.githubusercontent.com/TMBish/lab_posts/master/01_actor_careers/00_actors_directors.csv")
+
+# Clean some data quality issues on the DOB
+film_folk[film_folk$dob < as.Date("1880-01-01"), "dob"] = as.Date("1880-01-01")
+
+# Grep out first name and dob year for the gender function
+film_folk =
+  film_folk %>%
+  mutate(
+    first_name = str_extract(name, "(?i)[a-z]+(?=\\s)"),
+    dob_year = year(dob)
+  )
+
+# Distinct name, dob combos and predict gender
+genders =
+  film_folk %>%
+  distinct(first_name, dob_year) %>%
+  gender_df(name_col = "first_name", year_col = "dob_year") %>%
+  select("first_name" = name, gender, "dob_year" = year_min)
 
 ```
 
-We should sense check the gender mapping. Let's take a random 10 people to check is working as desired:
+We should sense check the gender mapping to make sure the package is making logical inferences. Let's take a random 10 person sample:
 
 ```{r}
-set.seed(123)
-
 genders %>%
   sample_n(10) %>%
-  knitr::kable(caption = "Sense Checking the Gender Mapping")
-
+  knitr::kable()
 ```
 
-Things get dicey with a name like Sandy; however, the package obviously knows that most Sandys born in 1937 were female so we'll have to trust it here. Otherwise the list looks pretty, pretty, pretty good.
+So generally this is looking pretty, pretty good. Things get dicey with unisex names like Sandy; however, the package must know that most Sandys born in 1937 were female so we'll have to trust it here. Finally we'll need to join this information back to the individual data set.
 
 ```{r}
 # Join back the gender back to the main data
@@ -129,11 +129,11 @@ film_folk =
 
 ```
 
-# Q1. Gender Gap
+# Female Directors?
 
-To answer this question we'll first need to calculate a person's age at the time of their appearance in a film. We'll then 
+# How old?
 
-
+We've finally sorted out our source data. However, we still need to add a few variables to be able to answer this question. We need we'll first need to calculate a person's age at the time of their appearance in a film. We'll then 
 
 ```{r}
 
@@ -239,8 +239,6 @@ age_dist_chart
 </div>
 
 <button class="button secondary outline" id = "update_age_series"> Show Cumulative Distribution </button>
-
-
 
 # Q2. Acting and Directing as a skill
 
@@ -415,7 +413,7 @@ rating_chart =
 ```
 
 ```{r echo = FALSE}
-chart
+rating_chart
 ```
 
 ```{r echo = FALSE}

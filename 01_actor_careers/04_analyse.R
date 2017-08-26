@@ -80,9 +80,9 @@ volume_data =
 
   	# PDF
   	chart_data = 
-   temp %>%
-    select(-films) %>%
-    spread(category, percentage)
+     temp %>%
+      select(-films) %>%
+      spread(category, percentage)
 
 	chart = 
 	  highchart() %>%
@@ -174,7 +174,8 @@ rating_data =
 
 # LOESS Trend Line
 loess_fit = loess(value ~ age_at_production , 
-                  data = rating_data %>% gather("role", "value", -age_at_production)
+                  data = rating_data %>% gather("role", "value", -age_at_production),
+                  span = 0.6
                   # %>% group_by(age_at_production) %>% summarise(value = mean(value, na.rm = TRUE))
                   )
 	

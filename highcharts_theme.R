@@ -1,32 +1,37 @@
 high_tmbish = function() {
   
+  base_font = "Josefin Slab"
+  header_font = "Arvo"
+  
+  header_style = list(fontFamily = header_font, fontWeight = "bold", color = "#011627")
+  
   out = 
     hc_theme(
       chart = list(
         backgroundColor = "#FDFFFC",
         style = list(
-          fontFamily = "Grand Hotel"
+          fontFamily = base_font
         )
       ),
-      colors = list("#FF9F1C", "#2EC4B6", "#FE5F55", "#FE5F55"),
+      colors = list("#FF9F1C", "#2EC4B6", "#FE5F55", "#C1E1F1", "#5FEF9B"),
       title = list(
-        style = list(fontWeight = "bold", color = "#414141"),
+        style = header_style,
         align = "left"
       ),
       xAxis = list(
         lineWidth = 1, lineColor = "#011627",
         gridLineWidth = 0.2, gridLineColor = "#011627", gridLineDashStyle = "LongDash",
-        title = list(style = list(fontWeight = "bold"))
+        tickWidth = 0,
+        title = list(style = header_style)
       ),
       yAxis = list(
         lineWidth = 1, lineColor = "#011627",
         gridLineWidth = 0.2, gridLineColor = "#011627", gridLineDashStyle = "LongDash",
         minorGridLineWidth = 0.1, minorGridLineColor = "#011627",
-        title = list(style = list(fontWeight = "bold")),
-        tickColor = "#011627",
-        tickLength = 10,
-        minorTickLength = 5, minorTickWidth = 1
-        
+        # tickColor = "#011627",tickLength = 10,
+        # minorTickLength = 5, minorTickWidth = 1,
+        tickWidth = 0,
+        title = list(style = header_style)
       ),
       subtitle = list(
         style = list(fontStyle = "italic", color ="#414141"), 
@@ -35,7 +40,22 @@ high_tmbish = function() {
       tooltip = list(
         borderWidth = 0,
         shape = "square",
-        valueDecimals = 2
+        valueDecimals = 2,
+        backgroundColor = "#FFF",
+        valueDecimals = 2,
+        headerFormat = ""
+        # footerFormat = "<span style = 'background-color: {point.color}; height = 4px; width = 100%;'> </span>"
+        # formatter = JS("function() {
+        #                series = this.series.name;
+        #                x_var = this.series.x;
+        #                x_val = this.x;
+        #                y_var = this.y;
+        #                y_val = this.y
+        #                colour = this.y;
+        #                
+        #                string = '<b>' + series + '</b> <br> ' + this.series.xAxis.categories ;
+        #                return(string) 
+        #                }")
       ),
       plotOptions = list(
         line = list(marker = list(symbol = "circle", lineWidth = 2, radius = 5)),
@@ -43,21 +63,15 @@ high_tmbish = function() {
       ),
       legend = list(
         align = "right",
-        # floating = TRUE,
         layout = "vertical",
         backgroundColor = "#FFF",
         shadow = TRUE,
         title = "Legend",
         verticalAlign = "middle"
       ),
-      exporting = list(
-        enabled = TRUE
-      ),
       credits = list(
-        enabled = TRUE,
         href = "https://github.com/TMBish/lab_posts/blob/master/highcharts_theme.R",
-        text = "My schmick highcharts theme"
+        text = "TMBish's schmick highcharts theme"
       )
     )
 }
-
