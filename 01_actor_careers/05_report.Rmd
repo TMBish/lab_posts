@@ -1,19 +1,15 @@
 ---
-title: "Films: Age & Gender"
+title: "The prime of their life - the halflife of acting talent"
 output: 
 html_document:
 code_folding: hide
 ---
 
-# Questions?
+> insert an image
 
-Let's say we had a couple of questions about actors and directors:
+Much analysis has been completed regarding the performing peak of athletes and sportspeople. Statistically, swimmers peak at around 24, marathoner runners between 30-31, gymnasts at a mere 18, NBA players generally peak between 26-29, professional hockey players between 27-28, and chess players at 30-35. 
 
-> Do actors and directors improve with age?
-
-> Are female actors generally cast  than their male counterparts?
-
-To answer these questions we're going to need some data.
+Does the idea of a performing prime extend to artists and specifically actors and directors? There are obvious reasons to be skeptical. There's no major physical component to acting that could decay as the body does, and unlike chess you wouldn't think there's the need for an exreme state of concentration and cognition which might be unreachable in older age. There are other confounding factors that might prevent us from answering this question difinitively (which I'll discuss later) but let's dig into the data.
 
 # Housekeeping
 
@@ -48,11 +44,9 @@ tmbish = high_tmbish()
 
 # Data
 
-I started with imdb user **hagennelson's** list of [top 1000 actors](http://www.imdb.com/list/ls058011111/) and other imdb user **earthanime's** list of [top 250 directors](http://www.imdb.com/list/ls062419846/). Both lists span across generations, from the ancient (Ethel Barrymore and Alfred Hitchcock) to the modern (Chloë Grace Moretz and Christopher Nolan).
+To curate a data set for anlaysis I started with imdb user **hagennelson's** list of [top 1000 actors](http://www.imdb.com/list/ls058011111/) and imdb user **earthanime's** list of [top 250 directors](http://www.imdb.com/list/ls062419846/). Both lists span across generations, from the ancient (Ethel Barrymore and Alfred Hitchcock) to the modern (Chloë Grace Moretz and Christopher Nolan).
 
-I then developed code (which I'll cover in a different post) to scrape data from the rotten tomatoes pages of the above individuals' films. The final dataset includes **12,258** films and **1,233** indviduals.
-
-Altough we'll only use a few of these variables I brought in a few extras for some future investigations:
+I then developed code (available on GitHub) to scrape data from the rotten tomatoes pages of the above individuals' films. The final dataset includes **12,258** films and **1,233** indviduals. Although we'll only use a few of these variables, I brought in a few extras for some future investigations:
 
 Variable | Description
 -------- | -----------
@@ -65,15 +59,17 @@ av_rating | Average rating of film out of 10
 audience | The non-critic plebian equivolent of the tomatometer
 box_office | The box-office revenue
 director | The film's director
-actor_1:actor_6 | The 6 top actors according to rotten tomatoes internal ranking (seems like screen time)
+actor_1:actor_6 | The 6 top actors according to rotten tomatoes internal ranking (seemingly ordered by screen time)
 
 ## Film Data
 
-We'll load and take a peek at the film dataset:
+First we'll load and take a peek at the film dataset:
 
 ```{r}
 # Load in films data from Github Repo
 films = read_csv("https://raw.githubusercontent.com/TMBish/lab_posts/master/01_actor_careers/00_full_film_data.csv") %>% filter(!is.na(title))
+
+films %>% head()
 
 ```
 
@@ -81,7 +77,7 @@ films = read_csv("https://raw.githubusercontent.com/TMBish/lab_posts/master/01_a
 
 Now we'll load the individual data. 
 
-Unfortunately, because the Rotten Tomatoes devs are a bunch of politically correct SJWs, gender isn't provided on their film bio pages so we'll have to be creative. The `gender` package in R allows you to infer a person's gender from their first name and DOB. The result is a probabilistic best guess of that individuals most likely gender given their first name and DOB.
+Unfortunately, because the Rotten Tomatoes development tea are a bunch of politically correct SJWs, gender isn't provided on their film bio pages so we'll have to be creative. The `gender` R package allows you to infer a person's gender from their first name and DOB. The result is a probabilistic estimate of that individuals most likely gender given their first name and DOB.
 
 ```{r}
 
@@ -95,19 +91,17 @@ film_folk = read_csv("https://raw.githubusercontent.com/TMBish/lab_posts/master/
 film_folk[film_folk$dob < as.Date("1880-01-01"), "dob"] = as.Date("1880-01-01")
 
 # Grep out first name and dob year for the gender function
-film_folk =
-  film_folk %>%
-  mutate(
-    first_name = str_extract(name, "(?i)[a-z]+(?=\\s)"),
-    dob_year = year(dob)
-  )
+film_folk = film_folk %>%
+              mutate(
+                first_name = str_extract(name, "(?i)[a-z]+(?=\\s)"),
+                dob_year = year(dob)
+              )
 
 # Distinct name, dob combos and predict gender
-genders =
-  film_folk %>%
-  distinct(first_name, dob_year) %>%
-  gender_df(name_col = "first_name", year_col = "dob_year") %>%
-  select("first_name" = name, gender, "dob_year" = year_min)
+genders = film_folk %>%
+            distinct(first_name, dob_year) %>%
+            gender_df(name_col = "first_name", year_col = "dob_year") %>%
+            select("first_name" = name, gender, "dob_year" = year_min)
 
 ```
 
@@ -129,9 +123,18 @@ film_folk =
 
 ```
 
-# Female Directors?
+# Where are the female directors?
 
-# How old?
+To add a layer to this analysis I wanted group together people by gender and film production role (or actor vs director). So we think we'd be working with 4 groups, however, I was suprised to see that of our 250 top directors only XXX were female which is pretty appaling.
+
+This got me thinking about the rest of the dataset. Given our **12,258** films dataset isn't limited to director credits in our top 250 (the film might just have a top 1000 actor appear in it) we can get a bit of a better idea of the broader gender split of directors. I've captured a lot of the key numbers in the following chart.
+
+
+```{r}
+```
+
+
+# So 
 
 We've finally sorted out our source data. However, we still need to add a few variables to be able to answer this question. We need we'll first need to calculate a person's age at the time of their appearance in a film. We'll then 
 
