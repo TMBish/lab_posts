@@ -7,9 +7,11 @@ code_folding: hide
 
 > insert an image
 
-Much analysis has been completed regarding the performing peak of athletes and sportspeople. Statistically, swimmers peak at around 24, marathoner runners between 30-31, gymnasts at a mere 18, NBA players generally peak between 26-29, professional hockey players between 27-28, and chess players at 30-35. 
+Much analysis has been completed regarding the performing peak of athletes and sportspeople. Statistically, swimmers peak at around 24, marathon runners between 30-31, gymnasts at a mere 18, NBA players generally peak between 26-29, professional hockey players between 27-28, and chess players at 30-35. 
 
-Does the idea of a performing prime extend to artists and specifically actors and directors? There are obvious reasons to be skeptical. There's no major physical component to acting that could decay as the body does, and unlike chess you wouldn't think there's the need for an exreme state of concentration and cognition which might be unreachable in older age. There are other confounding factors that might prevent us from answering this question difinitively (which I'll discuss later) but let's dig into the data.
+Does the idea of a performing prime extend to artists, specifically actors and directors? There are obvious reasons to be skeptical. Importantly there's no major physical component to acting that would decay as the body does, and unlike chess you wouldn't think there's the need for an exreme state of concentration and cognition which might be unreachable at older ages. 
+
+There are significant confounding factors that might prevent us from answering this question difinitively (which I'll discuss later) but let's dig into the data.
 
 # Housekeeping
 
@@ -49,7 +51,7 @@ To curate a data set for anlaysis I started with imdb user **hagennelson's** lis
 I then developed code (available on GitHub) to scrape data from the rotten tomatoes pages of the above individuals' films. The final dataset includes **12,258** films and **1,233** indviduals. Although we'll only use a few of these variables, I brought in a few extras for some future investigations:
 
 Variable | Description
--------- | -----------
+------------ | ---------------------
 url | URL extension on rotten tomatoes website
 year | Film production year
 title | Film title
@@ -123,18 +125,32 @@ film_folk =
 
 ```
 
-# Where are the female directors?
+# What's the deal with female directors?
 
-To add a layer to this analysis I wanted group together people by gender and film production role (or actor vs director). So we think we'd be working with 4 groups, however, I was suprised to see that of our 250 top directors only XXX were female which is pretty appaling.
+To add a layer to this analysis I wanted group people by gender and film production role (actor vs director). So we think we'd be working with 4 groups, however, I was suprised to see that of our 250 top directors only XXX were female. A consequence of history but appaling nonetheless.
 
-This got me thinking about the rest of the dataset. Given our **12,258** films dataset isn't limited to director credits in our top 250 (the film might just have a top 1000 actor appear in it) we can get a bit of a better idea of the broader gender split of directors. I've captured a lot of the key numbers in the following chart.
-
+This got me thinking about the rest of the dataset. Given our **12,258** films dataset isn't limited to director credits in our top 250 (films in the set are contributed by both actor and director credits) we can get a bit of a better idea of the broader gender split of directors. I've captured a lot of the key numbers in the following chart.
 
 ```{r}
+# Directors
+
+# Top 250
+top250 = films %>%
+          select("name" = director) %>%
+          inner_join(film_folk) %>%
+          group_by(gender) %>%
+          summarise(
+            films = n(),
+            directors = n_distinct(name)
+          )
+
+
+
 ```
 
+# How old are we when we produce films? 
 
-# So 
+
 
 We've finally sorted out our source data. However, we still need to add a few variables to be able to answer this question. We need we'll first need to calculate a person's age at the time of their appearance in a film. We'll then 
 
