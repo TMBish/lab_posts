@@ -129,22 +129,85 @@ film_folk =
 
 To add a layer to this analysis I wanted group people by gender and film production role (actor vs director). So we think we'd be working with 4 groups, however, I was suprised to see that of our 250 top directors only XXX were female. A consequence of history but appaling nonetheless.
 
-This got me thinking about the rest of the dataset. Given our **12,258** films dataset isn't limited to director credits in our top 250 (films in the set are contributed by both actor and director credits) we can get a bit of a better idea of the broader gender split of directors. I've captured a lot of the key numbers in the following chart.
+This got me thinking about the rest of the dataset. Given our **12,258** film dataset isn't limited to director credits in our top 250 (films in the set are contributed by both actor and director credits) we can get a bit of a better idea of the broader gender split of directors. I've captured a lot of the key numbers in the following chart.
 
 ```{r}
+# Establish a persistent dataset of interest
+data = films %>%
+        select(title, year, tomatometer, director:actor_6) %>%
+        gather("role", "name", director:actor_6) %>%
+        inner_join(film_folk) %>%
+        select(-first_name) %>%
+        mutate(
+          role_type = ifelse(role == "director", "Director", "Actor"),
+          age_at_production = year - dob_year,
+          category = case_when(
+            role_type == "Director" ~ "director",
+            gender == "male" ~ "male_actor",
+            gender == "female" ~ "female_actor",
+            TRUE ~ "other"
+          )
+        )
+
+
 # Directors
 
-# Top 250
-top250 = films %>%
+# Data for known individuals
+known_summary = 
+  data %>%
+  group_by(role_type, gender) %>%
+  summarise(
+    films = n(),
+    distinct_people = n_distinct(name)
+  )
+
+# Unknown directors
+unknown_set = films %>%
           select("name" = director) %>%
-          inner_join(film_folk) %>%
-          group_by(gender) %>%
-          summarise(
-            films = n(),
-            directors = n_distinct(name)
-          )
+          anti_join(film_folk) %>%
+          mutate(
+            first_name = str_extract(name, "(?i)[a-z]+(?=\\s)"),
+            min_year = 1900, max_year = 1980
+          ) %>%
+          filter(!is.na(first_name))
+
+unknown_genders = 
+  unknown_set %>% 
+  gender_df(name_col = "first_name", year_col = c("min_year", "max_year")) %>%
+  select("first_name" = name, gender)
+
+unknown_summary = 
+  unknown_set %>%
+  inner_join(unknown_genders) %>%
+  mutate(role_type = "Director (Non Top250)") %>%
+  group_by(role_type, gender) %>%
+  summarise(
+    films = n(),
+    distinct_people = n_distinct(name)
+  )
+  
+chart_data = 
+  known_summary %>%
+  union_all(unknown_summary) %>%
+  group_by(role_type) %>%
+  mutate(
+    films_prop = films / sum(films),
+    people_prop = distinct_people / sum(distinct_people)
+  ) %>% ungroup()
 
 
+
+map(c("Actor", "Director", "Director (Non Top250)"), function(x) {
+
+    chart_data %>%
+    filter(role_type == x) %>%
+    gather("variable", "value", films_prop, people_prop) %>%
+    hchart(hcaes(x = gender, group = variable, y = value)) %>%
+    hc_title(text = x)
+
+}) %>%
+hw_grid(ncol = 1) %>% 
+browsable()
 
 ```
 
