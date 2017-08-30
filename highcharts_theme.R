@@ -20,13 +20,13 @@ high_tmbish = function() {
       ),
       xAxis = list(
         lineWidth = 1, lineColor = "#011627",
-        gridLineWidth = 0.2, gridLineColor = "#011627", gridLineDashStyle = "LongDash",
+        gridLineWidth = 0.1, gridLineColor = "#011627", gridLineDashStyle = "LongDash",
         tickWidth = 0,
         title = list(style = header_style)
       ),
       yAxis = list(
         lineWidth = 1, lineColor = "#011627",
-        gridLineWidth = 0.2, gridLineColor = "#011627", gridLineDashStyle = "LongDash",
+        gridLineWidth = 0.1, gridLineColor = "#011627", gridLineDashStyle = "LongDash",
         minorGridLineWidth = 0.1, minorGridLineColor = "#011627",
         # tickColor = "#011627",tickLength = 10,
         # minorTickLength = 5, minorTickWidth = 1,
@@ -59,7 +59,8 @@ high_tmbish = function() {
       ),
       plotOptions = list(
         line = list(marker = list(symbol = "circle", lineWidth = 2, radius = 5)),
-        spline = list(marker = list(symbol = "circle", lineWidth = 2, radius = 5))
+        spline = list(marker = list(symbol = "circle", lineWidth = 2, radius = 5)),
+        column = list(dataLabels = list(backgroundColor = "#FFF"))
       ),
       legend = list(
         align = "right",

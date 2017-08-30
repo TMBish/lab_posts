@@ -13,11 +13,10 @@ Does the idea of a performing prime extend to artists, specifically actors and d
 
 There are significant confounding factors that might prevent us from answering this question difinitively (which I'll discuss later) but let's dig into the data.
 
-# Housekeeping
 
-Let's set ourselves up with some packages, themes and utility functions.
+```{r echo = FALSE, warning=FALSE, message=FALSE}
+# Let's set ourselves up with some packages, themes and utility functions.
 
-```{r}
 # Packages
 library(readr)
 library(dplyr)
@@ -26,9 +25,11 @@ library(gender)
 library(stringr)
 library(lubridate)
 library(highcharter)
+library(purrr)
+library(htmltools)
 
 # Rmarkdown Options
-knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=FALSE)
+knitr::opts_chunk$set(echo = FALSE, warning=FALSE, message=FALSE)
 
 # For reproducibility
 set.seed(123)
@@ -65,13 +66,15 @@ actor_1:actor_6 | The 6 top actors according to rotten tomatoes internal ranking
 
 ## Film Data
 
-First we'll load and take a peek at the film dataset:
-
+Let's have a look at the films data set
 ```{r}
 # Load in films data from Github Repo
 films = read_csv("https://raw.githubusercontent.com/TMBish/lab_posts/master/01_actor_careers/00_full_film_data.csv") %>% filter(!is.na(title))
 
-films %>% head()
+films %>% 
+  select(-url) %>%
+  sample_n(5) %>%
+  knitr::kable()
 
 ```
 
@@ -79,7 +82,7 @@ films %>% head()
 
 Now we'll load the individual data. 
 
-Unfortunately, because the Rotten Tomatoes development tea are a bunch of politically correct SJWs, gender isn't provided on their film bio pages so we'll have to be creative. The `gender` R package allows you to infer a person's gender from their first name and DOB. The result is a probabilistic estimate of that individuals most likely gender given their first name and DOB.
+Unfortunately, because the Rotten Tomatoes development team are a bunch of politically correct SJWs, gender isn't provided on their film bio pages so we'll have to be creative. The `gender` R package allows you to infer a person's gender from their first name and DOB. The result is a probabilistic estimate of that individuals most likely gender given their first name and DOB.
 
 ```{r}
 
@@ -127,13 +130,13 @@ film_folk =
 
 # What's the deal with female directors?
 
-To add a layer to this analysis I wanted group people by gender and film production role (actor vs director). So we think we'd be working with 4 groups, however, I was suprised to see that of our 250 top directors only XXX were female. A consequence of history but appaling nonetheless.
+To add a layer to this analysis I wanted group people by gender and film production role (actor vs director). So we think we'd be working with 4 groups, however, I was suprised to see that of our 250 top directors only 25 were female. A consequence of history but appaling nonetheless.
 
-This got me thinking about the rest of the dataset. Given our **12,258** film dataset isn't limited to director credits in our top 250 (films in the set are contributed by both actor and director credits) we can get a bit of a better idea of the broader gender split of directors. I've captured a lot of the key numbers in the following chart.
+This got me thinking about the rest of the dataset. Given our **12,258** film dataset isn't limited to director credits in our top 250 (films in the set are contributed by both actor and director credits) we can get a bit of a better idea of the broader gender split for film directors. I've captured a lot of the key numbers in the following chart.
 
 ```{r}
 # Establish a persistent dataset of interest
-data = films %>%
+master = films %>%
         select(title, year, tomatometer, director:actor_6) %>%
         gather("role", "name", director:actor_6) %>%
         inner_join(film_folk) %>%
@@ -149,12 +152,11 @@ data = films %>%
           )
         )
 
-
 # Directors
 
 # Data for known individuals
 known_summary = 
-  data %>%
+  master %>%
   group_by(role_type, gender) %>%
   summarise(
     films = n(),
@@ -191,73 +193,71 @@ chart_data =
   union_all(unknown_summary) %>%
   filter(!is.na(gender))
 
+gender_props = list()
 
-map(c("films", "distinct_people"), function(x) {
-
-    data = 
-      chart_data %>%
-      select_("role_type", "gender", x) %>%
-      spread_("gender", x, fill = 0)
+for (metric in c("films", "distinct_people")) {
+    
+  data = 
+        chart_data %>%
+        select_("role_type", "gender", metric) %>%
+        spread_("gender", metric, fill = 0)
       
-    base = highchart() %>%
-            hc_chart(type = "column") %>%
-            hc_add_theme(tmbish) %>%
-            hc_xAxis(categories = data$role_type) %>%
-            hc_plotOptions(
-              column = list(
-                stacking = 'percent',
-                dataLabels = list(
-                  enabled = TRUE
-                  #,formatter = JS("function(){ return(point.percentage)}")
-                )
-              )
-            ) %>%
-            hc_title(text = ifelse(x=="films", "By Volume of Films", "By Distinct Individuals"))
+    base_chart = 
+      highchart() %>%
+      hc_chart(type = "column") %>%
+      hc_add_theme(tmbish) %>%
+      hc_xAxis(categories = data$role_type) %>%
+      hc_plotOptions(
+        column = list(
+          stacking = 'percent',
+          dataLabels = list(
+            enabled = TRUE,
+            color = "#FFF",
+            style = list(textOutline = NULL, fontSize = "14px"),
+            formatter = JS("function(){ return(Math.round(this.percentage) + '%')}")
+          )
+        )
+      ) %>%
+      hc_title(text = ifelse(metric=="films", "By Volume of Films", "By Distinct Individuals")) %>%
+      hc_legend(align = "center", verticalAlign = "bottom", layout = "horizontal")
 
     for (i in c("female", "male")) {
-      base = base %>% hc_add_series(name = i, data = data[,i] %>% unlist() %>% as.integer())
+      base_chart = base_chart %>% hc_add_series(name = i, data = data[,i] %>% unlist() %>% as.integer())
     }
     
-    if (x == "films") { base  = base %>% hc_legend(enabled=FALSE)}
+    if (metric != "films") { base_chart  = base_chart %>% hc_legend(enabled=FALSE)}
     
-    return(base)
-  
-}) %>%
-hw_grid(ncol = 2) %>% 
-browsable()
+  gender_props[[metric]] = base_chart 
+    
+}
+
+gender_props %>%
+  hw_grid(ncol = 1, rowheight = "400px") %>%
+  browsable()
 
 ```
 
-# How old are we when we produce films? 
 
+> Insert finding graphic thing
 
+So henceforth we'll treat directors as a single bloc and you can assume that they're male statistically speaking.
 
-We've finally sorted out our source data. However, we still need to add a few variables to be able to answer this question. We need we'll first need to calculate a person's age at the time of their appearance in a film. We'll then 
+# I starred in or directed a film; how old am I likely to be? 
+
+Well, as it turns out, it depends. We'll group individuals in groups: directors (predominantly male as seen above), male actors, and female actors. For all these individuals we calculate their age at the time a film they were in was realeased and plot the densities within each group.  
+
+Switch between the denisty (proportion appearing at one speicific age) and cumulative distribution (proportion appearing at **or before** at specific age) views to better understand the data.
 
 ```{r}
 
 # Chain a bunch of data wrangling operations
 volume_data =
-  films %>% 
-  select(title, year, tomatometer, director, actor_1:actor_6) %>%
-  gather("role", "name", director, actor_1:actor_6) %>%
-  mutate(role = ifelse(role == "director", "Director", "Actor")) %>%
-  inner_join(film_folk) %>%
-  mutate(
-    age_at_production = year - dob_year
-  ) %>%
+  master %>%
   filter(
     between(age_at_production, 10,100),
-    !is.na(gender)
+    !is.na(gender),
+    category != "other"
   ) %>%
-  select(name, gender, dob_year, age_at_production, year, role, tomatometer) %>%
-  mutate(
-    category = case_when(
-      role == "Director" ~ "director",
-      gender == "male" ~ "male_actor",
-      TRUE ~ "female_actor"
-    )
-  ) %>% 
   group_by(category, age_at_production) %>%
   summarise(
     films = n()
@@ -310,8 +310,8 @@ age_dist_chart =
     title = list(text = "Probablity Density"),
     labels = list(formatter = JS("function(){return(Math.round(this.value * 1000) / 10 + '%')}"))
   ) %>%
-  hc_title(text = "Female actors") %>%
-  hc_subtitle(text = "Comparing male actors, (male) directors and female actors") %>%
+  hc_title(text = "Age at Production") %>%
+  hc_subtitle(text = "Comparing the distribution of film professionals for age at the time of film productions") %>%
   hc_add_series(
     name = "Director", 
     type = "spline",
@@ -326,11 +326,11 @@ age_dist_chart =
   ) %>%
   hc_add_series(
     name = "Female Actor",
-    type = "area",
+    type = "spline",
     data = chart_data$female_actor,
-    zIndex = -10,
-    marker = list(enabled = FALSE),
-    fillOpacity = 0.5
+    zIndex = -10
+    #marker = list(enabled = FALSE)
+    #fillOpacity = 0.5
   )
 
 age_dist_chart
@@ -339,15 +339,17 @@ age_dist_chart
 
 <button class="button secondary outline" id = "update_age_series"> Show Cumulative Distribution </button>
 
-# Q2. Acting and Directing as a skill
+> Insert infographic thing
+
+# The half life of acting talent
 
 > Hypothesis 2: acting and directing skills aren't tied to a person's physical attributes so shouldn't experience deterioration in age. In fact you would expect these artists to improve their skills with age.
 
 ## Measuring Performance
 
-To investigate our hypothesis we must make a couple of assumptions. Since we don't have an individual actor / director performance (like we have in sports) we'll have to assume an actor or director can have a tangible affect on the quality of the movie they appear in; there are obviously many other factors but this seems like a relatively safe assumption.
+To investigate this hypothesis we must make a couple of assumptions. Since we don't have individual actor / director performance metrics (like we have in sports) we'll have to assume an actor or director can have a material affect on the quality of the movie they appear in; there are obviously many other factors but this seems like a relatively safe assumption.
 
-Further - for actors - we'll have to limit the dataset to actors that played an important role in the film. To implement an `actor performance == film quality` approach the actors need to be prominent enough so as to be able to affect the overall quality of the film. So while Michael Cera's cameo in **This is the End** was high quality it can't be said that he influenced the rotten tomatoes rating of the film on his own.
+Further - for actors - we'll have to limit the dataset to actors that played an important role in the film. To implement an `actor performance == film quality` approach the actors need to be noteworthy enough to be able to affect the overall quality of the film. So while Michael Cera's cameo in **This is the End** was high quality it can't be said that he influenced the rotten tomatoes rating of the film on his own.
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/qIKPJlKHKxg" frameborder="0" allowfullscreen></iframe>
 
@@ -357,73 +359,59 @@ After looking through a few rotten tomatoes pages it seems limiting to the top 3
 
 ## Methodology
 
-For every person in the dataset we follow the following recipe:
+There's a few other things we want to control for here. I don't want to plot raw film critical rating because we might be prone to idiosyncracies of groups or ages - high performing directors might generally wait until they feel experienced enough to direct their first film as an example.
 
-1. Produce a dataset for each actor with films that:
-+ We have a tomatometer score for
-+ And the actor is in the top 3 of rotten tomatoes credits
-2. Calculate the `mean` tomatometer for all of this person's films;
-3. Calculate the age the person was at the release of each film;
-4. For every film calculate what `percentage %` this tomato rating is above or below this person's `mean` (called a tomato index)
+Instead we'll plot, for each individual and film, how well they have perfomed relative to that individual's mean lifetime score (the average tomatometer of all that individual's films). This gives us a common scale on which to compare.
 
-Producing a dataset like this:
+To illustrate this approach let's look at Denzel Washington's films. Denzel has a healthy mean tomatometer of 68%.
 
 ```{r echo=FALSE}
-films %>% 
-  select(title, year, tomatometer, director, actor_1:actor_3) %>%
-  gather("role", "name", director, actor_1:actor_3) %>%
-  inner_join(film_folk) %>%
+master %>% 
   filter(
-    name == "Denzel Washington"
+    !(role %in% c("actor_4","actor_5", "actor_6")),
+    name == "Denzel Washington",
+    between(age_at_production, 15,85)
   ) %>%
-  mutate(
-    age_at_production = year - dob_year
-  ) %>%
-  filter(between(age_at_production, 15,85)) %>%
-  select(title, name, year, gender, age_at_production, tomatometer) %>%
   group_by(name) %>% 
   mutate(
     average_tomato  = round(mean(tomatometer))
   ) %>% 
   ungroup() %>%
   mutate(
-    tomato_index = tomatometer / average_tomato
+    tomato_index = (tomatometer - average_tomato) / average_tomato
   ) %>%
+  sample_n(10) %>%
   arrange(age_at_production) %>%
   select(title, name, year, age_at_production, tomatometer, average_tomato, tomato_index) %>%
-  mutate(index = scales::percent(tomato_index)) %>%
-  sample_n(10) %>%
+  mutate(tomato_index = scales::percent(tomato_index)) %>%
   knitr::kable()
 
 
 
 ```
 
+So based on this 10 film sample Denzel had a solid 40s where his films (of the likes **Hurricane** and **Courage Under Fire**) average a rotten tomatoes rating about 20% above his career average. He looks like he dropped off after 50 with a few flops like **Déjà Vu** (which I didn't mind) and **2 Guns**. Look I'm not calling him washed but...
+
 ## Results
 
+So we use this approach and plot out the median tomato index by age at production, giving us an idea of the *average performance above or below a career average* at each age.
+
 ```{r}
+
 # 
 rating_set =
-  films %>% 
-  select(title, year, tomatometer, director, actor_1:actor_3) %>%
-  gather("role", "name", director, actor_1:actor_3) %>%
-  inner_join(film_folk) %>%
-  filter(!is.na(gender)) %>%
-  mutate(
-    age_at_production = year - dob_year,
-    category = case_when(
-      role == "director" ~ "director",
-      gender == "male" ~ "male_actor",
-      TRUE ~ "female_actor"
-    )
+  master %>%
+  filter(
+    !(role %in% c("actor_4","actor_5", "actor_6")),
+    between(age_at_production, 15,85)
   ) %>%
-  filter(between(age_at_production, 15,85)) %>%
-  select(name, gender, age_at_production, category, tomatometer) %>%
   group_by(name) %>% 
   mutate(
-    average_tomato  = median(tomatometer),
+    average_tomato  = round(mean(tomatometer)),
     films = n()
-  ) %>% ungroup() %>%
+  ) %>% 
+  ungroup() %>%
+  mutate(tomato_index = (tomatometer - average_tomato) / average_tomato) %>%
   filter(films >= 5) 
 
 rating_volumes = 
@@ -434,8 +422,6 @@ rating_volumes =
   
 rating_scores = 
   rating_set %>%
-  mutate(
-    tomato_index = tomatometer / average_tomato) %>%
   group_by(category, age_at_production) %>%
   summarise(rating = median(tomato_index)) %>%
   spread(category, rating)
@@ -478,8 +464,7 @@ rating_chart =
     title = list(text = "Age at Production")
   ) %>%
   hc_yAxis(
-    title = list(text = "Probablity Density"),
-    min = 0.6
+    title = list(text = "Probablity Density")
   ) %>%
   hc_title(text = "Female actors") %>%
   hc_subtitle(text = "Comparing male actors, (male) directors and female actors") %>%
@@ -519,6 +504,59 @@ rating_chart
 volume_chart
 ```
 
+
+# The prime suspects
+
+```{r}
+
+actors = c("Robert De Niro", "Harvey Keitel", "Christopher Walken", "Bruce Willis", "Susan Sarandon", "Jeff Bridges", "Robin Williams", "Julianne Moore", "Steve Buscemi", "John Malkovich", "Meryl Streep", "Robert Redford")
+
+
+graphs = map(actors, function(actor) {
+  
+  bucket = 5
+  
+  actordata = 
+    master %>%
+    filter(
+      name == actor,
+      role %in% c("actor_1", "actor_2", "actor_3")
+    ) %>%
+    mutate(
+      average_tomato  = round(mean(tomatometer)),
+      tomato_index = (tomatometer - average_tomato) / average_tomato
+    ) %>%
+    mutate(age_bucket = round(age_at_production / bucket) * bucket) %>%
+    group_by(age_bucket) %>%
+    summarise(
+      index = mean(tomato_index),
+      films = n()) %>%
+    filter(films >= 3)
+  
+  highchart() %>%
+    hc_add_theme(tmbish) %>%
+    hc_chart(
+      animation = list(duration = 2000)
+    ) %>%
+    hc_xAxis(
+      categories = actordata$age_bucket,
+      title = list(text = "Age at Production")
+    ) %>%
+    hc_title(text = actor) %>%
+    hc_add_series(
+      name = "Performance Index",
+      type = "spline",
+      data = actordata$index
+    ) %>%
+    hc_legend(enabled = FALSE)
+  
+  
+}) %>% hw_grid(ncol = 3, rowheight = 400) %>% browsable()
+
+
+graphs
+
+```
 
 <script>
 
