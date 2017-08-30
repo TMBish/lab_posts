@@ -189,24 +189,41 @@ unknown_summary =
 chart_data = 
   known_summary %>%
   union_all(unknown_summary) %>%
-  group_by(role_type) %>%
-  mutate(
-    films_prop = films / sum(films),
-    people_prop = distinct_people / sum(distinct_people)
-  ) %>% ungroup()
+  filter(!is.na(gender))
 
 
+map(c("films", "distinct_people"), function(x) {
 
-map(c("Actor", "Director", "Director (Non Top250)"), function(x) {
+    data = 
+      chart_data %>%
+      select_("role_type", "gender", x) %>%
+      spread_("gender", x, fill = 0)
+      
+    base = highchart() %>%
+            hc_chart(type = "column") %>%
+            hc_add_theme(tmbish) %>%
+            hc_xAxis(categories = data$role_type) %>%
+            hc_plotOptions(
+              column = list(
+                stacking = 'percent',
+                dataLabels = list(
+                  enabled = TRUE
+                  #,formatter = JS("function(){ return(point.percentage)}")
+                )
+              )
+            ) %>%
+            hc_title(text = ifelse(x=="films", "By Volume of Films", "By Distinct Individuals"))
 
-    chart_data %>%
-    filter(role_type == x) %>%
-    gather("variable", "value", films_prop, people_prop) %>%
-    hchart(hcaes(x = gender, group = variable, y = value)) %>%
-    hc_title(text = x)
-
+    for (i in c("female", "male")) {
+      base = base %>% hc_add_series(name = i, data = data[,i] %>% unlist() %>% as.integer())
+    }
+    
+    if (x == "films") { base  = base %>% hc_legend(enabled=FALSE)}
+    
+    return(base)
+  
 }) %>%
-hw_grid(ncol = 1) %>% 
+hw_grid(ncol = 2) %>% 
 browsable()
 
 ```
