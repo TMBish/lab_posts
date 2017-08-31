@@ -21,14 +21,14 @@ high_tmbish = function() {
       ),
       xAxis = list(
         lineWidth = 1, lineColor = "#011627",
-        gridLineWidth = 0.1, gridLineColor = "#011627", gridLineDashStyle = "LongDash",
+        gridLineWidth = 0.1, gridLineColor = "#414141", gridLineDashStyle = "LongDash",
         tickWidth = 0,
         title = list(style = header_style)
       ),
       yAxis = list(
         lineWidth = 1, lineColor = "#011627",
-        gridLineWidth = 0.1, gridLineColor = "#011627", gridLineDashStyle = "LongDash",
-        minorGridLineWidth = 0.1, minorGridLineColor = "#011627",
+        gridLineWidth = 0.1, gridLineColor = "#414141", gridLineDashStyle = "LongDash",
+        minorGridLineWidth = 0, minorGridLineColor = "#414141",
         # tickColor = "#011627",tickLength = 10,
         # minorTickLength = 5, minorTickWidth = 1,
         tickWidth = 0,
