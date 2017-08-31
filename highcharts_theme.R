@@ -11,7 +11,8 @@ high_tmbish = function() {
         backgroundColor = "#FDFFFC",
         style = list(
           fontFamily = base_font
-        )
+        ),
+        shadow = TRUE
       ),
       colors = list("#FF9F1C", "#2EC4B6", "#FE5F55", "#C1E1F1", "#5FEF9B"),
       title = list(

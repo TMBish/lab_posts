@@ -424,21 +424,17 @@ rating_scores =
   rating_set %>%
   group_by(category, age_at_production) %>%
   summarise(rating = median(tomato_index)) %>%
+  filter(rating > -0.4) %>% # One outlier
   spread(category, rating)
 
 # LOESS Trend Line
-loess_fit = loess(value ~ age_at_production , 
-                  data = rating_scores %>% gather("role", "value", -age_at_production)
-                  # %>% group_by(age_at_production) %>% summarise(value = mean(value, na.rm = TRUE))
-)
-
-predictions = loess_fit %>% predict(seq(15,85))
+predictions = loess(value ~ age_at_production , data = rating_scores %>% gather("role", "value", -age_at_production)) %>% predict(seq(15,85))
 
 
 volume_chart = 
   highchart() %>%
   hc_add_theme(tmbish) %>%
-  hc_chart(height = "300") %>%
+  hc_chart(height = 300, spacingRight = 100) %>%
   hc_xAxis(categories = rating_volumes$age_at_production, opposite = TRUE) %>%
   hc_yAxis(
     title = list(text = "Total Films in Dataset"),
@@ -461,10 +457,21 @@ rating_chart =
   ) %>%
   hc_xAxis(
     categories = rating_scores$age_at_production,
-    title = list(text = "Age at Production")
+    title = list(text = "Age at Production"),
+    plotBands = list(
+       list(
+         from = 27-15, 
+         to = 35-15,
+         color = "rgba(255,106,92,0.2)",
+         label = list(text = "Acting prime: 27-35!", style=list(fontFamily="Arvo",fontWeight="bold", fontSize=10), verticalAlign="middle"))
+    )
   ) %>%
   hc_yAxis(
-    title = list(text = "Probablity Density")
+    title = list(text = "Probablity Density"),
+    min = -0.4,
+    labels = list(
+      formatter = JS("function(){return(this.value*100 + '%')}")
+    )
   ) %>%
   hc_title(text = "Female actors") %>%
   hc_subtitle(text = "Comparing male actors, (male) directors and female actors") %>%
@@ -542,6 +549,7 @@ graphs = map(actors, function(actor) {
       categories = actordata$age_bucket,
       title = list(text = "Age at Production")
     ) %>%
+    hc_yAxis(labels = list(formatter = JS("function(){return(this.value*100 + '%')}"))) %>%
     hc_title(text = actor) %>%
     hc_add_series(
       name = "Performance Index",
