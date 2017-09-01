@@ -1,3 +1,4 @@
+# Function takes an actor's name and returns their filmography from Rotten Tomatoes
 get_bio = function(person) {
   
   require(rvest)

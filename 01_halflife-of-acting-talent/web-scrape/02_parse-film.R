@@ -1,3 +1,5 @@
+
+# Function takes the Rotten Tomatoes URL exension of a film and returns a list with key information / stats about the film
 parse_film = function(url_extension) {
   
   require(rvest)

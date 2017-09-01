@@ -73,37 +73,37 @@ for (row in 1:nrow(film_folk)) {
   film_folk[row,"dob"] = details$dob
 
   # Get URLS
-  # urls = details$url %>% distinct(url_extension)
+  urls = details$url %>% distinct(url_extension)
   
-  # # DRY = DON'T REPEAT YOURSELF
-  # if ( nrow(films) > 0) {
-  #   # Remove movies we've already scraped
-  #   starting_rows = nrow(urls)
-  #   urls = 
-  #     urls %>%
-  #     anti_join(films %>% select(url), by = c("url_extension" = "url"))
+  # DRY = DON'T REPEAT YOURSELF
+  if ( nrow(films) > 0) {
+    # Remove movies we've already scraped
+    starting_rows = nrow(urls)
+    urls = 
+      urls %>%
+      anti_join(films %>% select(url), by = c("url_extension" = "url"))
     
-  #   if(starting_rows != nrow(urls)) {
-  #     cat(glue("Already recorded {starting_rows - nrow(urls)} films!"), "\n")
-  #   }
+    if(starting_rows != nrow(urls)) {
+      cat(glue("Already recorded {starting_rows - nrow(urls)} films!"), "\n")
+    }
     
-  #   if (nrow(urls)== 0) {next}
-  # }
+    if (nrow(urls)== 0) {next}
+  }
 
-  # # Initialise the cluster
-  # film_list = as.list(urls$url_extension)
-  # no_cores = max(detectCores() - 2,1)
-  # cl = makeCluster(no_cores)
+  # Initialise the cluster
+  film_list = as.list(urls$url_extension)
+  no_cores = max(detectCores() - 2,1)
+  cl = makeCluster(no_cores)
   
-  # # Multithread the film detail extraction
-  # results = parLapply(cl, film_list, parse_film)
+  # Multithread the film detail extraction
+  results = parLapply(cl, film_list, parse_film)
 
-  # # Close the cluster
-  # stopCluster(cl)
+  # Close the cluster
+  stopCluster(cl)
  
-  # to_df = do.call(rbind.data.frame, results)
+  to_df = do.call(rbind.data.frame, results)
   
-  # films = rbind(films, to_df)
+  films = rbind(films, to_df)
   
 }
 
