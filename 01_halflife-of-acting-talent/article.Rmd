@@ -11,6 +11,49 @@ code_folding: hide
 
 <br>
 
+<style>
+
+.finding {
+  background-color:#000;
+  height: 125px;
+  color: #FFF;
+  display: flex;
+  border-radius: 25px;
+  align-items: center;
+  text-align:center;
+}
+  
+.finding .sidebar { 
+  padding-top:15px;
+  width: 30%;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.finding .body {
+  width: 70%;
+  text-align:left;
+  font-size: 16px;
+  padding-right:10px
+}
+
+.finding .body p {
+  margin-bottom:0;
+}
+
+.finding img {
+  display : block;
+  margin : auto;
+}
+
+#the-half-list-of-acting-talent img {
+  height: 200px; 
+  display:block; 
+  margin: 0 auto;
+}
+
+</style>
+
 Much analysis has been completed regarding the performing peak of athletes and sportspeople. Statistically, swimmers peak at around 24, marathon runners between 30-31, gymnasts at a mere 18, NBA players generally peak between 26-29, professional hockey players between 27-28, and chess players at 30-35. 
 
 Does the idea of a performing prime extend to artists, specifically actors and directors? There are obvious reasons to be skeptical. Importantly there's no major physical component to acting that would decay as the body does, and unlike chess you wouldn't think there's the need for an exreme state of concentration and cognition which might be unreachable at older ages. 
@@ -53,50 +96,19 @@ tmbish = high_tmbish()
 
 create_finding = function(finding_text) {
   
-  html = glue::glue("
+  html = 
+glue::glue("<br><br><div class='finding'>
   
-  <style>
-  
-  .finding {
-    background-color:#FF6A5C;
-    height: 100px;
-    color: #FFF;
-    display: flex;
-    padding-top: 10px;
-    padding-bottom: 10px;
-    border-radius: 25px;
-    align-items: center;
-    text-align:center;
-  }
-    
-  .finding .sidebar { 
-    width: 20%;
-    font-weight: bold;
-    font-size: 14pt;
-  }
-  
-  .finding .body {
-    width: 80%
-  }
-  
-  .finding img {
-    display : block;
-    margin : auto;
-  }
+<div class='sidebar'>
+  <img src='https://github.com/TMBish/lab_posts/blob/master/00_utilities/lightbulb.png?raw=true'>
+  <span> Finding!</span>
+</div>
 
-  </style>
-    
-    <br>
-    
-    <div class='finding'>
-    
-      <div class='sidebar'><img src='https://github.com/TMBish/lab_posts/blob/master/00_utilities/lightbulb.png?raw=true'><span> Finding!</span></div>
-      
-      <div class='body'> <span> <<finding_text>> </span> </div>
-    
-    </div>
-    
-    <br>" %>% str_replace_all("\\n", ""), .open = "<<", .close = ">>")
+<div class='body'> 
+  <span> {finding_text} </span> 
+</div>
+  
+</div><br><br>")
   
   return(html)
   
@@ -118,7 +130,7 @@ dict = data.frame(
   Description = c("URL extension on rotten tomatoes website", "Film production year", "Film title", "Count of formal critic reviews of film", "Percentage of favourable reviews", "Average rating of film out of 10", "The non-critic plebian equivolent of the tomatometer", "The box-office revenue", "The film's director", "The 6 top actors according to rotten tomatoes internal ranking (seemingly ordered by screen time)")
 )
 
-dict %>% pandoc.table()
+dict %>% pandoc.table(style = "rmarkdown")
 
 ```
 
@@ -131,7 +143,7 @@ films = read_csv("https://raw.githubusercontent.com/TMBish/lab_posts/master/01_h
 
 films %>% 
   filter(title %in% c("The Departed", "Titanic", "No Country for Old Men", "Snatch.", "Superbad")) %>%
-  pandoc.table(emphasize.strong.cols = 3, missing="?")
+  pandoc.table(emphasize.strong.cols = 3, missing="?", style = "rmarkdown", justify="left",split.cells=15)
 
 ```
 
@@ -173,10 +185,10 @@ We should sense check the gender mapping to make sure the package is making logi
 genders %>%
   sample_n(10) %>%
   select(first_name, dob_year, gender) %>%
-  pandoc.table(emphasize.strong.cols = 3)
+  pandoc.table(emphasize.strong.cols = 3, style = "rmarkdown", justify="left", split.cells=15)
 ```
 
-So generally this is looking pretty, pretty good. Things get dicey with unisex names like Sandy; however, the package must know that most Sandys born in 1937 were female so we'll have to trust it here. Finally we'll need to join this information back to the individual data set.
+So generally this is looking pretty, pretty good. Things get dicey with unisex names like Sandy; however, the package must know that most Sandys born in 1937 were female so we'll have to trust it here.
 
 # What's the deal with female directors?
 
@@ -286,7 +298,7 @@ for (metric in c("films", "distinct_people")) {
     
 }
 
-gender_prop_finding = create_finding("The average age of a female actor at the time of film production is 28!")
+gender_prop_finding = create_finding("Approximately 80% of all directors are male, and 85% of popular films are directed by a man.")
 
 gender_props %>%
   hw_grid(ncol = 1, rowheight = "400px") %>%
@@ -300,13 +312,14 @@ gender_prop_finding
 
 ```
 
-So henceforth we'll treat directors as a single bloc and you can assume that they're male statistically speaking.
 
-# I starred in or directed a film; how old am I likely to be? 
+So we'll treat directors as a single group that, statistically speaking, are very much likely to be males.
 
-Well, as it turns out, it depends. We'll group individuals in groups: directors (predominantly male as seen above), male actors, and female actors. For all these individuals we calculate their age at the time a film they were in was realeased and plot the densities within each group.  
+# What's a typical career length?
 
-Switch between the denisty (proportion appearing at one speicific age) and cumulative distribution (proportion appearing at **or before** at specific age) views to better understand the data.
+Well, as it turns out, it depends on which one of the above groups you're in. To remind you, our groups are: directors (predominantly male as seen above), male actors, and female actors. For all these individuals we calculate their age at the time they were involved in a realeased film and plot the distribution within each group.  
+
+Click on the male and director series to compare with the female one shown below. Additionally, switch between the denisty view (proportion appearing at one speicific age) and cumulative distribution view (proportion appearing at **or before** at specific age) to better understand the data.
 
 ```{r}
 
@@ -393,35 +406,48 @@ age_dist_chart =
     #fillOpacity = 0.5
   )
 
+age_atprod_finding = create_finding("64% of female roles are given to actors under the age of 40 compared with 42% of male roles. Only 28% of popular films are directed by a someone under 40.")
+
 age_dist_chart
 ```
 </div>
 
 <button class="button secondary outline" id = "update_age_series"> Show Cumulative Distribution </button>
 
-> Insert infographic thing
-
 # The half life of acting talent
 
-To investigate this hypothesis we must make a couple of assumptions. Since we don't have individual actor / director performance metrics (like we have in sports) we'll have to assume an actor or director can have a material affect on the quality of the movie they appear in; there are obviously many other factors but this seems like a relatively safe assumption.
+Our ultimate question is: do actors and directors improve or deteriorate as they get older. To investigate this hypothesis we must make a couple of assumptions. Since we don't have individual actor or director performance metrics (like we have in sports) we'll have to assume an actor or director can have a material affect on the quality of the moviesthey appear in. There are obviously many other factors that go into the quality of a film but this seems like a relatively safe assumption.
 
 Further - for actors - we'll have to limit the dataset to actors that played an important role in the film. To implement an `actor performance == film quality` approach the actors need to be noteworthy enough to be able to affect the overall quality of the film. So while Michael Cera's cameo in **This is the End** was high quality it can't be said that he influenced the rotten tomatoes rating of the film on his own.
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/qIKPJlKHKxg" frameborder="0" allowfullscreen></iframe>
+<br>
+
+<iframe width="560" height="315" style="display:block;margin: 0 auto;" src="https://www.youtube.com/embed/qIKPJlKHKxg" frameborder="0" allowfullscreen></iframe>
+
+<br>
 
 After looking through a few rotten tomatoes pages it seems limiting to the top 3 actors in a given film is a reasonable cut-off for influncial performances.
 
-> INSERT EXAMPLES FROM A FEW ROTTEN TOMATOES PAGES
+### Snatch
 
-## Methodology
+![](snatch.png)
 
-There's a few other things we want to control for here. I don't want to plot raw film critical rating because we might be prone to idiosyncracies of groups or ages - high performing directors might generally wait until they feel experienced enough to direct their first film as an example.
+### No Country For Old Men
 
-Instead we'll plot, for each individual and film, how well they have perfomed relative to that individual's mean lifetime score (the average tomatometer of all that individual's films). This gives us a common scale on which to compare.
+![](no-country-for-old-men.png)
 
-To illustrate this approach let's look at Denzel Washington's films. Denzel has a healthy mean tomatometer of 68%.
+### The Departed
+
+![](the-departed.png)
+
+So we'll limit this dataset to the top 3 actors in each film. 
+
+There's a few other things we want to control for here. I don't necessarily want to plot raw film critical rating because this might be prone to idiosyncracies within groups or ages - for example, high performing directors might generally wait until they feel experienced enough to direct their first film.
+
+Instead we'll plot, for each individual and film, how well they have perfomed relative to that individual's career average (the average tomatometer of all that individual's films). To illustrate this approach let's look at Denzel Washington's films. Denzel has a healthy mean tomatometer of 68%.
 
 ```{r echo=FALSE, results='asis'}
+
 master %>% 
   filter(
     !(role %in% c("actor_4","actor_5", "actor_6")),
@@ -438,17 +464,73 @@ master %>%
   ) %>%
   sample_n(10) %>%
   arrange(age_at_production) %>%
-  select(title, name, year, age_at_production, tomatometer, average_tomato, tomato_index) %>%
+  select(title, year, age_at_production, tomatometer, average_tomato, tomato_index) %>%
   mutate(tomato_index = scales::percent(tomato_index)) %>%
-  pandoc.table(emphasize.strong.cols = 7)
+  pandoc.table(emphasize.strong.cols = 6, style = "rmarkdown", justify="left")
 
 ```
 
-So based on this 10 film sample Denzel had a solid 40s where his films (of the likes **Hurricane** and **Courage Under Fire**) average a rotten tomatoes rating about 20% above his career average. He looks like he dropped off after 50 with a few flops like **Déjà Vu** (which I didn't mind) and **2 Guns**. Look I'm not calling him washed but...
+So based on this 10 film sample Denzel had a solid early 40s where his films (of the likes **Hurricane** and **Courage Under Fire**) average a rotten tomatoes rating about 20% above his career average. He looks like he dropped off after 50 with a few flops like **Déjà Vu** (which I didn't mind) and **2 Guns**. Look I'm not calling him washed but he hasn't done anything good for a while.
 
-## Results
+## Prime Suspects
 
-So we use this approach and plot out the median tomato index by age at production, giving us an idea of the *average performance above or below a career average* at each age.
+To help visualise this approach let's take 12 of the top 20 actors by volume and visualise average their film rating performance by age. De Niro is a great example of someone who starred in increasingly poor films as he got older - clearly visible in the chart below.. Obviously this probably has more to do with role selection than deteriorating skills (we'll discuss this later) but it's interesting to visualise nonetheless.
+
+```{r}
+
+actors = c("Robert De Niro", "Harvey Keitel", "Christopher Walken", "Bruce Willis", "Susan Sarandon", "Jeff Bridges", "Robin Williams", "Julianne Moore", "Denzel Washington", "John Malkovich", "Meryl Streep", "Robert Redford")
+
+
+graphs = map(actors, function(actor) {
+  
+  bucket = 5
+  
+  actordata = 
+    master %>%
+    filter(
+      name == actor,
+      role %in% c("actor_1", "actor_2", "actor_3")
+    ) %>%
+    mutate(
+      average_tomato  = round(mean(tomatometer)),
+      tomato_index = (tomatometer - average_tomato) / average_tomato
+    ) %>%
+    mutate(age_bucket = round(age_at_production / bucket) * bucket) %>%
+    group_by(age_bucket) %>%
+    summarise(
+      index = mean(tomato_index),
+      films = n()) %>%
+    filter(films >= 3)
+  
+  highchart() %>%
+    hc_add_theme(tmbish) %>%
+    hc_chart(
+      animation = list(duration = 2000), shadow = FALSE
+    ) %>%
+    hc_xAxis(
+      categories = actordata$age_bucket,
+      title = list(text = "Age at Production")
+    ) %>%
+    hc_yAxis(labels = list(formatter = JS("function(){return(this.value*100 + '%')}"))) %>%
+    hc_title(text = actor) %>%
+    hc_add_series(
+      name = "Performance Index",
+      type = "spline",
+      data = actordata$index
+    ) %>%
+    hc_legend(enabled = FALSE)
+  
+  
+}) %>% hw_grid(ncol = 3, rowheight = 350) %>% browsable()
+
+
+graphs
+
+```
+
+## The holistic trend
+
+So let's extend this approach and plot out the median tomato index by age at production, giving us an idea of the *average performance above or below a career average* at each age.
 
 ```{r}
 
@@ -565,60 +647,18 @@ rating_chart
 volume_chart
 ```
 
+```{r results='asis'}
 
-# The prime suspects
+actor_prime_finding = create_finding("Actors and Directors work in their most critically acclaimed films - about 10% above their career average - between 27 and 35 years old.")
 
-```{r}
-
-actors = c("Robert De Niro", "Harvey Keitel", "Christopher Walken", "Bruce Willis", "Susan Sarandon", "Jeff Bridges", "Robin Williams", "Julianne Moore", "Steve Buscemi", "John Malkovich", "Meryl Streep", "Robert Redford")
-
-
-graphs = map(actors, function(actor) {
-  
-  bucket = 5
-  
-  actordata = 
-    master %>%
-    filter(
-      name == actor,
-      role %in% c("actor_1", "actor_2", "actor_3")
-    ) %>%
-    mutate(
-      average_tomato  = round(mean(tomatometer)),
-      tomato_index = (tomatometer - average_tomato) / average_tomato
-    ) %>%
-    mutate(age_bucket = round(age_at_production / bucket) * bucket) %>%
-    group_by(age_bucket) %>%
-    summarise(
-      index = mean(tomato_index),
-      films = n()) %>%
-    filter(films >= 3)
-  
-  highchart() %>%
-    hc_add_theme(tmbish) %>%
-    hc_chart(
-      animation = list(duration = 2000), shadow = FALSE
-    ) %>%
-    hc_xAxis(
-      categories = actordata$age_bucket,
-      title = list(text = "Age at Production")
-    ) %>%
-    hc_yAxis(labels = list(formatter = JS("function(){return(this.value*100 + '%')}"))) %>%
-    hc_title(text = actor) %>%
-    hc_add_series(
-      name = "Performance Index",
-      type = "spline",
-      data = actordata$index
-    ) %>%
-    hc_legend(enabled = FALSE)
-  
-  
-}) %>% hw_grid(ncol = 3, rowheight = 400) %>% browsable()
-
-
-graphs
+actor_prime_finding
 
 ```
+
+# Caveats & Conclusions
+
+While blah blah blah
+
 
 <script>
 
