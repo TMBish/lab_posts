@@ -58,7 +58,7 @@ Much analysis has been completed regarding the performing peak of athletes and s
 
 Does the idea of a performing prime extend to artists, specifically actors and directors? There are obvious reasons to be skeptical. Importantly there's no major physical component to acting that would decay as the body does, and unlike chess you wouldn't think there's the need for an exreme state of concentration and cognition which might be unreachable at older ages. 
 
-There are significant confounding factors that might prevent us from answering this question difinitively (which I'll discuss later) but let's dig into the data.
+There are some confounding factors that might prevent us from answering this question difinitively (which I'll discuss later) but let's dig into the data.
 
 
 ```{r echo = FALSE, warning=FALSE, message=FALSE}
@@ -75,6 +75,7 @@ library(highcharter)
 library(purrr)
 library(htmltools)
 library(pander)
+library(DT)
 
 # Rmarkdown Options
 knitr::opts_chunk$set(echo = FALSE, warning=FALSE, message=FALSE)
@@ -130,28 +131,39 @@ dict = data.frame(
   Description = c("URL extension on rotten tomatoes website", "Film production year", "Film title", "Count of formal critic reviews of film", "Percentage of favourable reviews", "Average rating of film out of 10", "The non-critic plebian equivolent of the tomatometer", "The box-office revenue", "The film's director", "The 6 top actors according to rotten tomatoes internal ranking (seemingly ordered by screen time)")
 )
 
-dict %>% pandoc.table(style = "rmarkdown")
+dict %>% pandoc.table(justify='left')
 
 ```
 
 ## Film Data
 
-Let's have a look at the films data set
+Let's have a look at the films data set. Click the blue `+` button to view the extra fields in the dataset (the director and top 6 actors in the film).
+
+<br>
 ```{r results='asis'}
 # Load in films data from Github Repo
 films = read_csv("https://raw.githubusercontent.com/TMBish/lab_posts/master/01_halflife-of-acting-talent/data/film-data.csv") %>% filter(!is.na(title))
 
 films %>% 
   filter(title %in% c("The Departed", "Titanic", "No Country for Old Men", "Snatch.", "Superbad")) %>%
-  pandoc.table(emphasize.strong.cols = 3, missing="?", style = "rmarkdown", justify="left",split.cells=15)
+  datatable(
+    style = 'bootstrap',
+    class = 'table-hover',
+    rownames=FALSE,
+    autoHideNavigation = TRUE,
+    extensions = 'Responsive'
+
+  )
 
 ```
+<br>
 
 ## Individual Data
 
 Now we'll load the individual data. 
 
-Unfortunately, because the Rotten Tomatoes development team are a bunch of politically correct SJWs, gender isn't provided on their film bio pages so we'll have to be creative. The `gender` R package allows you to infer a person's gender from their first name and DOB. The result is a probabilistic estimate of that individuals most likely gender given their first name and DOB.
+Unfortunately, because the Rotten Tomatoes development team are a bunch of politically correct SJWs, gender isn't provided on their film bio pages so we'll have to be creative. The `gender` R package allows you to infer a person's gender from their first name and DOB. The result is a probabilistic estimate of that individuals most likely gender given their first name and the year they were born.
+
 
 ```{r}
 
@@ -179,14 +191,23 @@ genders = film_folk %>%
 
 ```
 
-We should sense check the gender mapping to make sure the package is making logical inferences. Let's take a random 10 person sample:
+Pretty cool, but we should sense check the gender mapping to make sure the package is making logical guesses. Let's take a random 10 person sample:
+
+<br>
 
 ```{r results='asis'}
 genders %>%
   sample_n(10) %>%
   select(first_name, dob_year, gender) %>%
-  pandoc.table(emphasize.strong.cols = 3, style = "rmarkdown", justify="left", split.cells=15)
+  datatable(
+  style = 'bootstrap',
+  class = 'table-hover',
+  rownames=FALSE,
+  autoHideNavigation = TRUE
+  )
 ```
+
+<bt>
 
 So generally this is looking pretty, pretty good. Things get dicey with unisex names like Sandy; however, the package must know that most Sandys born in 1937 were female so we'll have to trust it here.
 
@@ -317,7 +338,7 @@ So we'll treat directors as a single group that, statistically speaking, are ver
 
 # What's a typical career length?
 
-Well, as it turns out, it depends on which one of the above groups you're in. To remind you, our groups are: directors (predominantly male as seen above), male actors, and female actors. For all these individuals we calculate their age at the time they were involved in a realeased film and plot the distribution within each group.  
+Well, as it turns out, it depends on which one of the above groups you're in. To remind you, our groups are: directors (predominantly male as seen above), male actors, and female actors. For all these individuals we calculate their age at the time they were credited in a film release and plot the distribution within each group.  
 
 Click on the male and director series to compare with the female one shown below. Additionally, switch between the denisty view (proportion appearing at one speicific age) and cumulative distribution view (proportion appearing at **or before** at specific age) to better understand the data.
 
@@ -388,12 +409,14 @@ age_dist_chart =
   hc_add_series(
     name = "Director", 
     type = "spline",
+    visible= FALSE,
     data = chart_data$director,
     marker = list(enabled = FALSE)
   ) %>%
   hc_add_series(
     name = "Male Actor",
     type = "spline",
+    visible= FALSE,
     data = chart_data$male_actor,
     marker = list(enabled = FALSE)
   ) %>%
@@ -401,9 +424,11 @@ age_dist_chart =
     name = "Female Actor",
     type = "spline",
     data = chart_data$female_actor,
-    zIndex = -10
-    #marker = list(enabled = FALSE)
-    #fillOpacity = 0.5
+    zIndex = -10,
+    marker = list(enabled = FALSE)
+  ) %>%
+  hc_tooltip(
+    formatter = JS("function(){return('<b> Series: </b>' + point.key + '<br> <b> Age: </b>' + this.x + '<b> Value: </b>' + this.y )}")
   )
 
 age_atprod_finding = create_finding("64% of female roles are given to actors under the age of 40 compared with 42% of male roles. Only 28% of popular films are directed by a someone under 40.")
@@ -416,9 +441,9 @@ age_dist_chart
 
 # The half life of acting talent
 
-Our ultimate question is: do actors and directors improve or deteriorate as they get older. To investigate this hypothesis we must make a couple of assumptions. Since we don't have individual actor or director performance metrics (like we have in sports) we'll have to assume an actor or director can have a material affect on the quality of the moviesthey appear in. There are obviously many other factors that go into the quality of a film but this seems like a relatively safe assumption.
+Our ultimate question is: do actors and directors improve or deteriorate as they get older. To investigate this hypothesis we must make a couple of assumptions. Since we don't have individual actor or director performance metrics (like we have in sports) we'll have to assume an actor or director can have a material affect on the quality of the movies they appear in. There are obviously many other factors that go into the quality of a film but this seems like a relatively safe assumption.
 
-Further - for actors - we'll have to limit the dataset to actors that played an important role in the film. To implement an `actor performance == film quality` approach the actors need to be noteworthy enough to be able to affect the overall quality of the film. So while Michael Cera's cameo in **This is the End** was high quality it can't be said that he influenced the rotten tomatoes rating of the film on his own.
+Further - for actors - we'll have to limit the dataset to actors that played an important role in the film. To implement an `actor performance == film quality` approach the actors need to be influential enough to be able to affect the overall quality of the film. So while Michael Cera's cameo in **This is the End** was high quality, it can't be said that he influenced the rotten tomatoes rating of the film on his own.
 
 <br>
 
@@ -442,10 +467,11 @@ After looking through a few rotten tomatoes pages it seems limiting to the top 3
 
 So we'll limit this dataset to the top 3 actors in each film. 
 
-There's a few other things we want to control for here. I don't necessarily want to plot raw film critical rating because this might be prone to idiosyncracies within groups or ages - for example, high performing directors might generally wait until they feel experienced enough to direct their first film.
+There's a few other things we want to control for here. I don't necessarily want to plot raw film critical rating because this might be prone to idiosyncracies within groups or ages - for example, high performing directors might generally wait until they are experienced enough to direct their first film.
 
-Instead we'll plot, for each individual and film, how well they have perfomed relative to that individual's career average (the average tomatometer of all that individual's films). To illustrate this approach let's look at Denzel Washington's films. Denzel has a healthy mean tomatometer of 68%.
+Instead we'll plot, for each individual and film, how well they have perfomed relative to their career average (the average tomatometer of all that individual's films). To illustrate this approach let's look at Denzel Washington's films. Denzel has a healthy mean tomatometer of 68%.
 
+<br>
 ```{r echo=FALSE, results='asis'}
 
 master %>% 
@@ -466,15 +492,26 @@ master %>%
   arrange(age_at_production) %>%
   select(title, year, age_at_production, tomatometer, average_tomato, tomato_index) %>%
   mutate(tomato_index = scales::percent(tomato_index)) %>%
-  pandoc.table(emphasize.strong.cols = 6, style = "rmarkdown", justify="left")
+  datatable(
+    style = 'bootstrap',
+    class = 'table-hover',
+    rownames=FALSE,
+    autoHideNavigation = TRUE,
+    extensions = 'FixedColumns',
+    options = list(
+      scrollX = TRUE,
+      fixedColumns = list(leftColumns = 1, rightColumns=1)
+    )
+  )
 
 ```
+<br>
 
-So based on this 10 film sample Denzel had a solid early 40s where his films (of the likes **Hurricane** and **Courage Under Fire**) average a rotten tomatoes rating about 20% above his career average. He looks like he dropped off after 50 with a few flops like **Déjà Vu** (which I didn't mind) and **2 Guns**. Look I'm not calling him washed but he hasn't done anything good for a while.
+So based on this 10 film sample Denzel had a solid early 40s where his films (**Hurricane** and **Courage Under Fire** etc) averaged a rotten tomatoes rating about 20% above his career average. He looks like he dropped off after 50 with a few flops like **Déjà Vu** (which I didn't mind) and **2 Guns**. Look I'm not calling him washed but he hasn't done anything good for a while.
 
 ## Prime Suspects
 
-To help visualise this approach let's take 12 of the top 20 actors by volume and visualise average their film rating performance by age. De Niro is a great example of someone who starred in increasingly poor films as he got older - clearly visible in the chart below.. Obviously this probably has more to do with role selection than deteriorating skills (we'll discuss this later) but it's interesting to visualise nonetheless.
+To help visualise this approach let's take 12 of the top 20 actors by volume and visualise average their film rating performance by age. De Niro is a great example of someone who starred in increasingly poor films as he got older - clearly visible in the chart below. This probably has more to do with role selection than deteriorating skills (we'll discuss this later) but it's interesting to visualise nonetheless.
 
 ```{r}
 
@@ -528,7 +565,7 @@ graphs
 
 ```
 
-## The holistic trend
+## The Upshot
 
 So let's extend this approach and plot out the median tomato index by age at production, giving us an idea of the *average performance above or below a career average* at each age.
 
@@ -657,7 +694,12 @@ actor_prime_finding
 
 # Caveats & Conclusions
 
-While blah blah blah
+While it appears that actors and directors have their prime between the ages of 27-35 I don't think it's fair to say this is **caused** by a natural skill trajectory. Some caveats that could potentially explain this trend without our skills and abilities narrative:
+
+* Most films typically have non-elderly main characters; limiting the ability for an older, but still skillful, actor to be cast in these roles
+* Seperating an Actor's role **choice** vs their **performance** given they chose a particular role highlights the problem we see with De Niro above. It's quite possible that after career success and achievements actor's and directors prioritise different things (eg. *$Cash Money$*) in the twiglights of their careers.
+
+All we can say for sure is that the prime of your acting life (the quality of the films you're in) happens between 27-35. Whether that's becuase you were at the peak of your abilities, or you were more likely to be seeking critically acclaimed roles (hunting that first Oscar), or you were just given opportunities you wouldn't be afforded later in life we'll have to leave to another day.
 
 
 <script>

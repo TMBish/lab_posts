@@ -39,7 +39,6 @@ high_tmbish = function() {
         align = "left"
       ),
       tooltip = list(
-        borderWidth = 0,
         shape = "square",
         valueDecimals = 2,
         backgroundColor = "#FFF",
