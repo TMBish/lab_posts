@@ -1,6 +1,8 @@
 high_tmbish = function() {
   
-  base_font = "Josefin Slab"
+  base_font = "Lato"
+  # base_font = "Josefin Slab"
+
   header_font = "Arvo"
   
   header_style = list(fontFamily = header_font, fontWeight = "bold", color = "#011627")
@@ -21,13 +23,13 @@ high_tmbish = function() {
       ),
       xAxis = list(
         lineWidth = 1, lineColor = "#011627",
-        gridLineWidth = 0.1, gridLineColor = "#7a7a7a", gridLineDashStyle = "LongDash",
+        gridLineWidth = 0.05, gridLineColor = "#7a7a7a", gridLineDashStyle = "LongDash",
         tickWidth = 0,
         title = list(style = header_style)
       ),
       yAxis = list(
         lineWidth = 1, lineColor = "#011627",
-        gridLineWidth = 0.1, gridLineColor = "#7a7a7a", gridLineDashStyle = "LongDash",
+        gridLineWidth = 0.05, gridLineColor = "#7a7a7a", gridLineDashStyle = "LongDash",
         minorGridLineWidth = 0, minorGridLineColor = "#7a7a7a",
         # tickColor = "#011627",tickLength = 10,
         # minorTickLength = 5, minorTickWidth = 1,

@@ -110,7 +110,7 @@ source("https://raw.githubusercontent.com/TMBish/lab_posts/master/00_utilities/c
 
 # Data
 
-To curate a data set for anlaysis I started with imdb user **hagennelson's** list of [top 1000 actors](http://www.imdb.com/list/ls058011111/) and imdb user **earthanime's** list of [top 250 directors](http://www.imdb.com/list/ls062419846/). Both lists span across generations, from the ancient (Ethel Barrymore and Alfred Hitchcock) to the modern (Chloë Grace Moretz and Christopher Nolan).
+To curate a data set for anlaysis I started with imdb user **hagennelson's** list of [top 1000 actors](http://www.imdb.com/list/ls058011111/) and imdb user **earthanime's** list of [top 250 directors](http://www.imdb.com/list/ls062419846/). Both lists span across generations, from the ancient (Ethel Barrymore and Alfred Hitchcock) to the modern (Chloe Grace Moretz and Christopher Nolan).
 
 I then developed code (available on GitHub) to scrape data from the rotten tomatoes pages of the above individuals' films. The final dataset includes **12,258** films and **1,233** indviduals. Although we'll only use a few of these variables, I brought in a few extras for some future investigations:
 
@@ -137,7 +137,6 @@ films = read_csv("https://raw.githubusercontent.com/TMBish/lab_posts/master/01_h
 films %>% 
   filter(title %in% c("The Departed", "Titanic", "No Country for Old Men", "Snatch.", "Superbad")) %>%
   datatable(
-    style = 'bootstrap',
     class = 'table-hover',
     rownames=FALSE,
     autoHideNavigation = TRUE,
@@ -190,7 +189,6 @@ genders %>%
   sample_n(10) %>%
   select(first_name, dob_year, gender) %>%
   datatable(
-  style = 'bootstrap',
   class = 'table-hover',
   rownames=FALSE,
   autoHideNavigation = TRUE
@@ -316,7 +314,7 @@ for (metric in c("films", "distinct_people")) {
 gender_prop_finding = create_finding("Approximately 85% of all directors are male, and almost 90% of popular films are directed by a man.")
 
 gender_props %>%
-  hw_grid(ncol = 2, rowheight = "400px") %>%
+  hw_grid(ncol = 2, rowheight = "600px") %>%
   browsable()
 
 ```
@@ -388,7 +386,8 @@ age_dist_chart =
   highchart() %>%
   hc_add_theme(tmbish) %>%
   hc_chart(
-    animation = list(duration = 2000)
+    animation = list(duration = 2000),
+    height = 300
   ) %>%
   hc_xAxis(
     categories = chart_data$age_at_production,
@@ -443,7 +442,7 @@ age_atprod_finding
 
 Our ultimate question is: do actors and directors improve or deteriorate as they get older. To investigate this hypothesis we must make a couple of assumptions. Since we don't have individual actor or director performance metrics (like we have in sports) we'll have to assume an actor or director can have a material affect on the quality of the movies they appear in. There are obviously many other factors that go into the quality of a film but this seems like a relatively safe assumption.
 
-Further - for actors - we'll have to limit the dataset to actors that played an important role in the film. To implement an `actor performance == film quality` approach the actors need to be influential enough to be able to affect the overall quality of the film. So while Michael Cera's cameo in **This is the End** was high quality, it can't be said that he influenced the rotten tomatoes rating of the film on his own.
+Further - for actors - we'll have to limit the dataset to actors that played an important role in the film. To implement an **actor performance == film quality** approach the actors need to be influential enough to be able to affect the overall quality of the film. So while Michael Cera's cameo in **This is the End** was high quality, it can't be said that he influenced the rotten tomatoes rating of the film on his own.
 
 <br>
 
@@ -467,9 +466,9 @@ After looking through a few rotten tomatoes pages it seems limiting to the top 3
 
 So we'll limit this dataset to the top 3 actors in each film. 
 
-There's a few other things we want to control for here. I don't necessarily want to plot raw film critical rating because this might be prone to idiosyncracies within groups or ages - for example, high performing directors might generally wait until they are experienced enough to direct their first film.
+There are few other things we want to control for here. I don't necessarily want to plot raw film critical rating because this might be prone to idiosyncracies within groups or ages - for example, high performing directors might generally wait until they are experienced enough to direct their first film.
 
-Instead we'll plot, for each individual and film, how well they have perfomed relative to their career average (the average tomatometer of all that individual's films). To illustrate this approach let's look at Denzel Washington's films. Denzel has a healthy mean tomatometer of 68%.
+Instead we'll plot, for each individual and film, how well they have perfomed relative to their career average (the average tomatometer across all that individual's films). To illustrate this approach let's look at Denzel Washington's films. Denzel has a healthy mean tomatometer of 68%.
 
 <br>
 ```{r echo=FALSE, results='asis'}
@@ -493,7 +492,6 @@ master %>%
   select(title, year, age_at_production, tomatometer, average_tomato, tomato_index) %>%
   mutate(tomato_index = scales::percent(tomato_index)) %>%
   datatable(
-    style = 'bootstrap',
     class = 'table-hover',
     rownames=FALSE,
     autoHideNavigation = TRUE,
@@ -507,7 +505,9 @@ master %>%
 ```
 <br>
 
-So based on this 10 film sample Denzel had a solid early 40s where his films (**Hurricane** and **Courage Under Fire** etc) averaged a rotten tomatoes rating about 20% above his career average. He looks like he dropped off after 50 with a few flops like **Déjà Vu** (which I didn't mind) and **2 Guns**. Look I'm not calling him washed but he hasn't done anything good for a while.
+So based on this 10 film sample Denzel had a solid early 40s where his films (**Hurricane** and **Courage Under Fire** etc) averaged a rotten tomatoes rating about 20% above his career average. He looks like he dropped off after 50 with a few flops like **Deja Vu** (which I didn't mind) and **2 Guns**. Check the chart below to see how he's partially rebounded with flicks like **Flight** and **Fences**. 
+
+<br>
 
 ## Prime Suspects
 
@@ -561,16 +561,18 @@ graphs = map(actors, function(actor) {
     )
   
   
-}) %>% hw_grid(ncol = 3, rowheight = 250) %>% browsable()
+}) %>% hw_grid(ncol = 3, rowheight = 300) %>% browsable()
 
 
 graphs
 
 ```
 
+<br>
+
 ## The Upshot
 
-So let's extend this approach and plot out the median tomato index by age at production, giving us an idea of the *average performance above or below a career average* at each age.
+So let's extend this approach and plot out the median tomato index by age at production, giving us an idea of the **average performance above or below the career average** at each age.
 
 ```{r}
 
@@ -610,7 +612,7 @@ predictions = loess(value ~ age_at_production , data = rating_scores %>% gather(
 volume_chart = 
   highchart() %>%
   hc_add_theme(tmbish) %>%
-  hc_chart(height = 300, spacingRight = 125, shadow=FALSE) %>%
+  hc_chart(spacingRight = 125, shadow=FALSE) %>%
   hc_xAxis(categories = rating_volumes$age_at_production, opposite = TRUE) %>%
   hc_yAxis(
     title = list(text = "Total Films in Dataset"),
