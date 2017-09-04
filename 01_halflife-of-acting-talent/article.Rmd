@@ -14,24 +14,23 @@ code_folding: hide
 <style>
 
 .finding {
-  background-color:#000;
+  background-color:#414141;
   height: 125px;
   color: #FFF;
   display: flex;
-  border-radius: 25px;
   align-items: center;
   text-align:center;
 }
   
 .finding .sidebar { 
   padding-top:15px;
-  width: 30%;
+  width: 20%;
   font-weight: bold;
   font-size: 18px;
 }
 
 .finding .body {
-  width: 70%;
+  width: 75%;
   text-align:left;
   font-size: 16px;
   padding-right:10px
@@ -46,7 +45,19 @@ code_folding: hide
   margin : auto;
 }
 
-#the-half-list-of-acting-talent img {
+#snatch img {
+  height: 200px; 
+  display:block; 
+  margin: 0 auto;
+}
+
+#no-country-for-old-men img {
+  height: 200px; 
+  display:block; 
+  margin: 0 auto;
+}
+
+#the-departed img {
   height: 200px; 
   display:block; 
   margin: 0 auto;
@@ -94,28 +105,7 @@ source("https://raw.githubusercontent.com/TMBish/lab_posts/master/00_utilities/h
 tmbish = high_tmbish()
 
 # Finding function
-
-create_finding = function(finding_text) {
-  
-  html = 
-glue::glue("<br><br><div class='finding'>
-  
-<div class='sidebar'>
-  <img src='https://github.com/TMBish/lab_posts/blob/master/00_utilities/lightbulb.png?raw=true'>
-  <span> Finding!</span>
-</div>
-
-<div class='body'> 
-  <span> {finding_text} </span> 
-</div>
-  
-</div><br><br>")
-  
-  return(html)
-  
-}
-
-
+source("https://raw.githubusercontent.com/TMBish/lab_posts/master/00_utilities/create-finding-html.R")
 ```
 
 # Data
@@ -209,7 +199,7 @@ genders %>%
 
 <bt>
 
-So generally this is looking pretty, pretty good. Things get dicey with unisex names like Sandy; however, the package must know that most Sandys born in 1937 were female so we'll have to trust it here.
+So generally this is looking pretty, pretty good. Things get dicey with unisex names like Sandy; however, the package must know that Sandy was more commonly used for females in the 1930s, which is consistent with my [1 data other point.](https://www.youtube.com/watch?v=cxbMk-8701M)
 
 # What's the deal with female directors?
 
@@ -292,37 +282,41 @@ for (metric in c("films", "distinct_people")) {
       
     base_chart = 
       highchart() %>%
-      hc_chart(type = "column") %>%
+      hc_chart(type = "column", shadow=FALSE) %>%
       hc_add_theme(tmbish) %>%
       hc_xAxis(categories = data$role_type) %>%
+      hc_yAxis(title = list(text = ifelse(metric=="films", "Percentage of Total Roles", "Percentage of Distinct Individuals"))) %>%
       hc_plotOptions(
         column = list(
           stacking = 'percent',
           dataLabels = list(
             enabled = TRUE,
             color = "#FFF",
+            backgroundColor = NULL,
             style = list(textOutline = NULL, fontSize = "14px"),
             formatter = JS("function(){ return(Math.round(this.percentage) + '%')}")
           )
         )
       ) %>%
-      hc_title(text = ifelse(metric=="films", "By Volume of Films", "By Distinct Individuals")) %>%
-      hc_legend(align = "center", verticalAlign = "bottom", layout = "horizontal")
+      hc_title(text = ifelse(metric=="films", "By Volume of Roles", "By Distinct Individuals")) %>%
+      hc_legend(enabled=FALSE) %>%
+      hc_tooltip(
+        formatter = JS("function(){return('<b>Gender: </b>' + this.series.name + '<br> <b>Proportion: </b>' + Math.round(this.percentage) + '%')}")
+      )
+      # hc_legend(align = "center", verticalAlign = "bottom", layout = "horizontal")
 
     for (i in c("female", "male")) {
       base_chart = base_chart %>% hc_add_series(name = i, data = data[,i] %>% unlist() %>% as.integer())
     }
     
-    if (metric != "films") { base_chart  = base_chart %>% hc_legend(enabled=FALSE)}
-    
   gender_props[[metric]] = base_chart 
     
 }
 
-gender_prop_finding = create_finding("Approximately 80% of all directors are male, and 85% of popular films are directed by a man.")
+gender_prop_finding = create_finding("Approximately 85% of all directors are male, and almost 90% of popular films are directed by a man.")
 
 gender_props %>%
-  hw_grid(ncol = 1, rowheight = "400px") %>%
+  hw_grid(ncol = 2, rowheight = "400px") %>%
   browsable()
 
 ```
@@ -334,7 +328,7 @@ gender_prop_finding
 ```
 
 
-So we'll treat directors as a single group that, statistically speaking, are very much likely to be males.
+So we'll treat directors as a single group that, statistically speaking, are very likely to be male.
 
 # What's a typical career length?
 
@@ -405,7 +399,7 @@ age_dist_chart =
     labels = list(formatter = JS("function(){return(Math.round(this.value * 1000) / 10 + '%')}"))
   ) %>%
   hc_title(text = "Age at Production") %>%
-  hc_subtitle(text = "Comparing the distribution of film professionals for age at the time of film productions") %>%
+  hc_subtitle(text = "Contrasting the distribution of ages at production across gender and role") %>%
   hc_add_series(
     name = "Director", 
     type = "spline",
@@ -428,16 +422,22 @@ age_dist_chart =
     marker = list(enabled = FALSE)
   ) %>%
   hc_tooltip(
-    formatter = JS("function(){return('<b> Series: </b>' + point.key + '<br> <b> Age: </b>' + this.x + '<b> Value: </b>' + this.y )}")
+        formatter = JS("function(){return('<b> Series: </b>' + this.series.name + '<br> <b>Age: </b>' + this.x + '<br> <b>Value: </b>' + Math.round(this.y*1000) / 10 +'%' )}")
   )
-
-age_atprod_finding = create_finding("64% of female roles are given to actors under the age of 40 compared with 42% of male roles. Only 28% of popular films are directed by a someone under 40.")
 
 age_dist_chart
 ```
 </div>
 
 <button class="button secondary outline" id = "update_age_series"> Show Cumulative Distribution </button>
+
+
+```{r results='asis'}
+age_atprod_finding = create_finding("64% of female roles are given to actors under the age of 40 compared with 42% of male roles. Only 28% of popular films are directed by a someone under 40.")
+
+age_atprod_finding
+
+```
 
 # The half life of acting talent
 
@@ -555,10 +555,13 @@ graphs = map(actors, function(actor) {
       type = "spline",
       data = actordata$index
     ) %>%
-    hc_legend(enabled = FALSE)
+    hc_legend(enabled = FALSE) %>%
+    hc_tooltip(
+         formatter = JS("function(){return('<b>Tomato Index: </b>' + Math.round(this.y*1000) / 10 +'%' )}")
+    )
   
   
-}) %>% hw_grid(ncol = 3, rowheight = 350) %>% browsable()
+}) %>% hw_grid(ncol = 3, rowheight = 250) %>% browsable()
 
 
 graphs
@@ -607,7 +610,7 @@ predictions = loess(value ~ age_at_production , data = rating_scores %>% gather(
 volume_chart = 
   highchart() %>%
   hc_add_theme(tmbish) %>%
-  hc_chart(height = 300, spacingRight = 125) %>%
+  hc_chart(height = 300, spacingRight = 125, shadow=FALSE) %>%
   hc_xAxis(categories = rating_volumes$age_at_production, opposite = TRUE) %>%
   hc_yAxis(
     title = list(text = "Total Films in Dataset"),
@@ -617,16 +620,22 @@ volume_chart =
   hc_add_series(
     name = "Volumes",
     type = "area",
+    fillOpacity = 0.25,
     data = rating_volumes$films,
     marker = list(enabled = FALSE)
   ) %>% 
-  hc_legend(enabled = FALSE)
+  hc_legend(enabled = FALSE) %>%
+    hc_tooltip(
+       formatter = JS("function(){return('<b>Total Performances At This Age: </b>' + -1*this.y)}")
+  )
+  
 
 rating_chart = 
   highchart() %>%
   hc_add_theme(tmbish) %>%
   hc_chart(
-    animation = list(duration = 2000)
+    animation = list(duration = 2000),
+    shadow = FALSE
   ) %>%
   hc_xAxis(
     categories = rating_scores$age_at_production,
@@ -646,7 +655,7 @@ rating_chart =
       formatter = JS("function(){return(this.value*100 + '%')}")
     )
   ) %>%
-  hc_title(text = "Female actors") %>%
+  hc_title(text = "The Prime of Your Life") %>%
   hc_subtitle(text = "Comparing male actors, (male) directors and female actors") %>%
   hc_add_series(
     name = "Director",
@@ -672,6 +681,9 @@ rating_chart =
     data = predictions,
     color = "#000000",
     marker = list(enabled = FALSE)
+  ) %>%
+  hc_tooltip(
+        formatter = JS("function(){return('<b>Role Type: </b>' + this.series.name + '<br> <b>Age: </b>' + this.x + '<br> <b>Average Tomato Index: </b>' + Math.round(this.y*1000) / 10 +'%' )}")
   )
 
 ```
@@ -694,10 +706,10 @@ actor_prime_finding
 
 # Caveats & Conclusions
 
-While it appears that actors and directors have their prime between the ages of 27-35 I don't think it's fair to say this is **caused** by a natural skill trajectory. Some caveats that could potentially explain this trend without our skills and abilities narrative:
+While it appears that actors and directors have their prime between the ages of 27-35 we can't say with confidence that this is **caused** by a natural skill trajectory. Some caveats that could potentially explain this trend without our skills and abilities narrative:
 
-* Most films typically have non-elderly main characters; limiting the ability for an older, but still skillful, actor to be cast in these roles
-* Seperating an Actor's role **choice** vs their **performance** given they chose a particular role highlights the problem we see with De Niro above. It's quite possible that after career success and achievements actor's and directors prioritise different things (eg. *$Cash Money$*) in the twiglights of their careers.
+* Most films (and by extension good films) typically have non-elderly main characters; limiting the ability for an older, but still skillful, actor to be cast in these roles
+* Seperating an actor's role **choice** vs their **performance** given they chose a particular role highlights the problem we see with De Niro above. It's quite possible that after career success and personal skill based accolades, actor and directors prioritise different things (eg. **$ Cash Money $**) in the twiglight of their careers.
 
 All we can say for sure is that the prime of your acting life (the quality of the films you're in) happens between 27-35. Whether that's becuase you were at the peak of your abilities, or you were more likely to be seeking critically acclaimed roles (hunting that first Oscar), or you were just given opportunities you wouldn't be afforded later in life we'll have to leave to another day.
 

@@ -11,8 +11,8 @@ high_tmbish = function() {
         backgroundColor = "#FDFFFC",
         style = list(
           fontFamily = base_font
-        ),
-        shadow = TRUE
+        )
+        # shadow = TRUE
       ),
       colors = list("#FF9F1C", "#2EC4B6", "#FE5F55", "#C1E1F1", "#5FEF9B"),
       title = list(
@@ -21,14 +21,14 @@ high_tmbish = function() {
       ),
       xAxis = list(
         lineWidth = 1, lineColor = "#011627",
-        gridLineWidth = 0.1, gridLineColor = "#414141", gridLineDashStyle = "LongDash",
+        gridLineWidth = 0.1, gridLineColor = "#7a7a7a", gridLineDashStyle = "LongDash",
         tickWidth = 0,
         title = list(style = header_style)
       ),
       yAxis = list(
         lineWidth = 1, lineColor = "#011627",
-        gridLineWidth = 0.1, gridLineColor = "#414141", gridLineDashStyle = "LongDash",
-        minorGridLineWidth = 0, minorGridLineColor = "#414141",
+        gridLineWidth = 0.1, gridLineColor = "#7a7a7a", gridLineDashStyle = "LongDash",
+        minorGridLineWidth = 0, minorGridLineColor = "#7a7a7a",
         # tickColor = "#011627",tickLength = 10,
         # minorTickLength = 5, minorTickWidth = 1,
         tickWidth = 0,
