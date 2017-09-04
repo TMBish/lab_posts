@@ -152,7 +152,7 @@ films %>%
 
 Now we'll load the individual data. 
 
-Unfortunately, because the Rotten Tomatoes development team are a bunch of politically correct SJWs, gender isn't provided on their film bio pages so we'll have to be creative. The `gender` R package allows you to infer a person's gender from their first name and DOB. The result is a probabilistic estimate of that individuals most likely gender given their first name and the year they were born.
+Unfortunately, because the Rotten Tomatoes development team are a bunch of politically correct SJWs (/s), gender isn't provided on their film bio pages so we'll have to be creative. The `gender` R package allows you to infer a person's gender from their first name and DOB. The result is a probabilistic estimate of that individuals most likely gender given their first name and the year they were born.
 
 
 ```{r}
@@ -429,7 +429,7 @@ age_dist_chart
 ```
 </div>
 
-<button class="button secondary outline" id = "update_age_series"> Show Cumulative Distribution </button>
+<button class="button w100 secondary round outline" id = "update_age_series"> Show Cumulative Distribution </button>
 
 
 ```{r results='asis'}
