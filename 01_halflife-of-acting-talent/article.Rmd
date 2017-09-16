@@ -7,63 +7,9 @@ code_folding: hide
 
 <br>
 
-![Nah but actually The Intern was ok.](deniro.jpg)
+![Nah but actually The Intern was ok.](/img/lab/01/deniro.jpg)
 
 <br>
-
-<style>
-
-.finding {
-  background-color:#414141;
-  height: 125px;
-  color: #FFF;
-  display: flex;
-  align-items: center;
-  text-align:center;
-}
-  
-.finding .sidebar { 
-  padding-top:15px;
-  width: 20%;
-  font-weight: bold;
-  font-size: 18px;
-}
-
-.finding .body {
-  width: 75%;
-  text-align:left;
-  font-size: 16px;
-  padding-right:10px
-}
-
-.finding .body p {
-  margin-bottom:0;
-}
-
-.finding img {
-  display : block;
-  margin : auto;
-}
-
-#snatch img {
-  height: 200px; 
-  display:block; 
-  margin: 0 auto;
-}
-
-#no-country-for-old-men img {
-  height: 200px; 
-  display:block; 
-  margin: 0 auto;
-}
-
-#the-departed img {
-  height: 200px; 
-  display:block; 
-  margin: 0 auto;
-}
-
-</style>
 
 Much analysis has been completed regarding the performing peak of athletes and sportspeople. Statistically, swimmers peak at around 24, marathon runners between 30-31, gymnasts at a mere 18, NBA players generally peak between 26-29, professional hockey players between 27-28, and chess players at 30-35. 
 
@@ -112,7 +58,7 @@ source("https://raw.githubusercontent.com/TMBish/lab_posts/master/00_utilities/c
 
 To curate a data set for anlaysis I started with imdb user **hagennelson's** list of [top 1000 actors](http://www.imdb.com/list/ls058011111/) and imdb user **earthanime's** list of [top 250 directors](http://www.imdb.com/list/ls062419846/). Both lists span across generations, from the ancient (Ethel Barrymore and Alfred Hitchcock) to the modern (Chloe Grace Moretz and Christopher Nolan).
 
-I then developed code (available on GitHub) to scrape data from the rotten tomatoes pages of the above individuals' films. The final dataset includes **12,258** films and **1,233** indviduals. Although we'll only use a few of these variables, I brought in a few extras for some future investigations:
+I then developed code (available [here on Github](https://github.com/TMBish/lab_posts/tree/master/01_halflife-of-acting-talent/web-scrape)) to scrape data from the rotten tomatoes pages of the above individuals' films. The final dataset includes **12,258** films and **1,233** indviduals. Although we'll only use a few of these variables, I brought in a few extras for some future investigations:
 
 ```{r results='asis'}
 
@@ -127,9 +73,8 @@ dict %>% pandoc.table(justify='left')
 
 ## Film Data
 
-Let's have a look at the films data set. Click the blue `+` button to view the extra fields in the dataset (the director and top 6 actors in the film).
+Let's have a look at the films data set. Click the green `+` button to view the extra fields in the dataset (the director and top 6 actors in the film).
 
-<br>
 ```{r results='asis'}
 # Load in films data from Github Repo
 films = read_csv("https://raw.githubusercontent.com/TMBish/lab_posts/master/01_halflife-of-acting-talent/data/film-data.csv") %>% filter(!is.na(title))
@@ -182,8 +127,6 @@ genders = film_folk %>%
 
 Pretty cool, but we should sense check the gender mapping to make sure the package is making logical guesses. Let's take a random 10 person sample:
 
-<br>
-
 ```{r results='asis'}
 genders %>%
   sample_n(10) %>%
@@ -201,7 +144,7 @@ So generally this is looking pretty, pretty good. Things get dicey with unisex n
 
 # What's the deal with female directors?
 
-To add a layer to this analysis I wanted group people by gender and film production role (actor vs director). So we think we'd be working with 4 groups, however, I was suprised to see that of our 250 top directors only 25 were female. A consequence of history but appaling nonetheless.
+To add a layer to this analysis I wanted to group people by gender and film production role (actor vs director). So we think we'd be working with 4 groups; however, I was suprised to see that of our 250 top directors only 25 were female. A consequence of history but appaling nonetheless.
 
 This got me thinking about the rest of the dataset. Given our **12,258** film dataset isn't limited to director credits in our top 250 (films in the set are contributed by both actor and director credits) we can get a bit of a better idea of the broader gender split for film directors. I've captured a lot of the key numbers in the following chart.
 
@@ -314,7 +257,7 @@ for (metric in c("films", "distinct_people")) {
 gender_prop_finding = create_finding("Approximately 85% of all directors are male, and almost 90% of popular films are directed by a man.")
 
 gender_props %>%
-  hw_grid(ncol = 2, rowheight = "600px") %>%
+  hw_grid(ncol = 2, rowheight = "450px") %>%
   browsable()
 
 ```
@@ -325,14 +268,13 @@ gender_prop_finding
 
 ```
 
-
 So we'll treat directors as a single group that, statistically speaking, are very likely to be male.
 
 # What's a typical career length?
 
 Well, as it turns out, it depends on which one of the above groups you're in. To remind you, our groups are: directors (predominantly male as seen above), male actors, and female actors. For all these individuals we calculate their age at the time they were credited in a film release and plot the distribution within each group.  
 
-Click on the male and director series to compare with the female one shown below. Additionally, switch between the denisty view (proportion appearing at one speicific age) and cumulative distribution view (proportion appearing at **or before** at specific age) to better understand the data.
+Click on the male and director series to compare with the female one shown below. Additionally, switch between the density view (proportion appearing at one speicific age) and cumulative distribution view (proportion appearing at **or before** a specific age) to better understand the data.
 
 ```{r}
 
@@ -387,7 +329,7 @@ age_dist_chart =
   hc_add_theme(tmbish) %>%
   hc_chart(
     animation = list(duration = 2000),
-    height = 300
+    height = 500
   ) %>%
   hc_xAxis(
     categories = chart_data$age_at_production,
@@ -454,15 +396,15 @@ After looking through a few rotten tomatoes pages it seems limiting to the top 3
 
 ### Snatch
 
-![](snatch.png)
+![](/img/lab/01/snatch.png)
 
 ### No Country For Old Men
 
-![](no-country-for-old-men.png)
+![](/img/lab/01/no-country-for-old-men.png)
 
 ### The Departed
 
-![](the-departed.png)
+![](/img/lab/01/the-departed.png)
 
 So we'll limit this dataset to the top 3 actors in each film. 
 
@@ -505,17 +447,21 @@ master %>%
 ```
 <br>
 
-So based on this 10 film sample Denzel had a solid early 40s where his films (**Hurricane** and **Courage Under Fire** etc) averaged a rotten tomatoes rating about 20% above his career average. He looks like he dropped off after 50 with a few flops like **Deja Vu** (which I didn't mind) and **2 Guns**. Check the chart below to see how he's partially rebounded with flicks like **Flight** and **Fences**. 
+So based on this 10 film sample Denzel had a solid early 40s where his films (**Hurricane** and **Courage Under Fire** etc) averaged a rotten tomatoes rating about 20% above his career average. He looks like he dropped off after 50 with a few flops like **Deja Vu** (which I didn't mind) and **Safe House**. Check the chart below to see how he's partially rebounded with flicks like **Flight** and **Fences**. 
 
 <br>
 
 ## Prime Suspects
 
-To help visualise this approach let's take 12 of the top 20 actors by volume and visualise average their film rating performance by age. De Niro is a great example of someone who starred in increasingly poor films as he got older - clearly visible in the chart below. This probably has more to do with role selection than deteriorating skills (we'll discuss this later) but it's interesting to visualise nonetheless.
+To help visualise this approach let's take 12 of the top 20 actors by total number of roles in the data set and visualise average their film rating performance by age. De Niro is a great example of someone who starred in increasingly poor films as he got older - clearly visible in the chart below. This probably has more to do with role selection than deteriorating skills (we'll discuss this later) but it's interesting to visualise nonetheless.
 
 ```{r}
 
 actors = c("Robert De Niro", "Harvey Keitel", "Christopher Walken", "Bruce Willis", "Susan Sarandon", "Jeff Bridges", "Robin Williams", "Julianne Moore", "Denzel Washington", "John Malkovich", "Meryl Streep", "Robert Redford")
+
+p = function(v) {
+  Reduce(f= function(x,y) {return(paste(y,x, sep=" <br> "))}, v)
+}
 
 
 graphs = map(actors, function(actor) {
@@ -532,11 +478,17 @@ graphs = map(actors, function(actor) {
       average_tomato  = round(mean(tomatometer)),
       tomato_index = (tomatometer - average_tomato) / average_tomato
     ) %>%
-    mutate(age_bucket = round(age_at_production / bucket) * bucket) %>%
+    mutate(
+      age_bucket = round(age_at_production / bucket) * bucket,
+      film_info = str_c(title, " <span class='", ifelse(tomatometer<=40, 'sus-tool-red', ifelse(tomatometer>75, 'sus-tool-green', 'sus-tool-amber')) ,"'>", tomatometer, "% </span>")      
+    ) %>%
     group_by(age_bucket) %>%
+    arrange(tomatometer) %>%
     summarise(
-      index = mean(tomato_index),
-      films = n()) %>%
+      y = mean(tomato_index),
+      films = n(),
+      tooltip = p(film_info)
+    ) %>%
     filter(films >= 3)
   
   highchart() %>%
@@ -553,13 +505,14 @@ graphs = map(actors, function(actor) {
     hc_add_series(
       name = "Performance Index",
       type = "spline",
-      data = actordata$index
+      data = list_parse(actordata %>% select(y, tooltip))
     ) %>%
     hc_legend(enabled = FALSE) %>%
     hc_tooltip(
-         formatter = JS("function(){return('<b>Tomato Index: </b>' + Math.round(this.y*1000) / 10 +'%' )}")
+         formatter = JS("function(){return('<div style=\"text-align:right;\">' + this.point.tooltip + '</div>')}"),
+         useHTML = TRUE,
+         style = list(textalign = "right")
     )
-  
   
 }) %>% hw_grid(ncol = 3, rowheight = 300) %>% browsable()
 
@@ -651,7 +604,7 @@ rating_chart =
     )
   ) %>%
   hc_yAxis(
-    title = list(text = "Probablity Density"),
+    title = list(text = "Median Tomato Index"),
     min = -0.4,
     labels = list(
       formatter = JS("function(){return(this.value*100 + '%')}")
@@ -710,11 +663,10 @@ actor_prime_finding
 
 While it appears that actors and directors have their prime between the ages of 27-35 we can't say with confidence that this is **caused** by a natural skill trajectory. Some caveats that could potentially explain this trend without our skills and abilities narrative:
 
-* Most films (and by extension good films) typically have non-elderly main characters; limiting the ability for an older, but still skillful, actor to be cast in these roles
+* Most films (and by extension good films) typically have non-elderly main characters; limiting the ability for an older, but still skillful, actor to be cast in these roles.
 * Seperating an actor's role **choice** vs their **performance** given they chose a particular role highlights the problem we see with De Niro above. It's quite possible that after career success and personal skill based accolades, actor and directors prioritise different things (eg. **$ Cash Money $**) in the twiglight of their careers.
 
-All we can say for sure is that the prime of your acting life (the quality of the films you're in) happens between 27-35. Whether that's becuase you were at the peak of your abilities, or you were more likely to be seeking critically acclaimed roles (hunting that first Oscar), or you were just given opportunities you wouldn't be afforded later in life we'll have to leave to another day.
-
+All we can say for sure is that the prime of your acting life - defined by the quality of the films you're appear in - happens between 27-35. Whether that's becuase you were at the peak of your abilities, or you were more likely to be seeking critically acclaimed roles (hunting that first Oscar), or you were just given opportunities you wouldn't be afforded later in life we'll have to leave to another day. To spend more time exploring film data head over to my film data shiny app [Stratton](http://www.tmbish.me/shiny/stratton/) in the Shiny section of my website.
 
 <script>
 
