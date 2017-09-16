@@ -14,6 +14,84 @@ img: "bulletin-edition-1"
 ---
 
 
+# Generate Data
+
+```{r}
+library(dplyr)
+library(tidyr)
+
+data <- data.frame(
+  normal = rnorm(10000, 5, 2), # 1000 random from normal dist
+  exponential = rexp(10000, 0.5), # 1000 random from exponential dist
+  uniform = runif(10000, 0, 10) # 1000 random from uniform dist
+)
+
+# Data Manipulation
+data %>%
+  gather(distribution, value, normal:uniform) %>%
+  mutate(value = value %>% round(1)) %>%
+  filter(value >= 0, value <= 12) %>%
+  group_by(distribution, value) %>%
+  summarise(points = n()) %>%
+  ungroup() %>% group_by(distribution) %>%
+  mutate(density = points / sum(points)) %>%
+  ungroup() %>%
+  select(-points) -> density
+
+```
+
+
+# Plot Data
+
+```{r}
+
+library(highcharter)
+
+
+plot_data = density %>% spread(distribution, density)
+
+  highchart() %>%
+  hc_add_theme(hc_theme_monokai()) %>%
+  hc_chart(
+    animation = list(duration = 2000),
+    height = 500
+  ) %>%
+  hc_xAxis(
+    categories = plot_data$value,
+    title = list(text = "Value")
+  ) %>%
+  hc_yAxis(
+    title = list(text = "Probablity Density"),
+    labels = list(formatter = JS("function(){return(Math.round(this.value * 1000) / 10 + '%')}"))
+  ) %>%
+  hc_title(text = "3 Probability Densities") %>%
+  hc_add_series(
+    name = "Normal", 
+    type = "spline",
+    data = plot_data$normal,
+    marker = list(enabled = FALSE)
+  ) %>%
+  hc_add_series(
+    name = "Exponential",
+    type = "spline",
+    data = plot_data$exponential,
+    marker = list(enabled = FALSE)
+  ) %>%
+  hc_add_series(
+    name = "Uniform",
+    type = "spline",
+    data = plot_data$uniform,
+    marker = list(enabled = FALSE)
+  )
+
+
+```
+
+
+
+# Add Interactivity
+
+
 ```{class.source="language-javascript"}
 
 $(document).ready(function() {
