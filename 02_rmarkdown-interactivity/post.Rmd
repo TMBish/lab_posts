@@ -15,18 +15,20 @@ img: "bulletin-edition-1"
 
 # Overview
 
-Interactivity in data analytics outputs is great for a number of reasons.
+Adding interactivity to data analytics outputs is a great tool to have in your toolkit.
 
-As an R User you have a number of different formats to write. It can become confusing about how each of these formats differ from one another, specifically when it comes to interactivity.
+As an R User you generally have a few major output options. However, it's not immediately obvious how interactive you can get within each format. 
 
-- **Shiny Apps** is the most interactive format with few limitations but requires a server to run.
-- **HTML R markdown docs, slides and Notebooks** are nice comprimise.
-- **Non-HTML Rmarkdown outputs** are the least interactive with text and plots (images) assembled in a static arrangement.
+- **Shiny Apps** are the most interactive format with few limitations but require a computer server to host. This can be too much overhead for smaller tasks.
+- **Non-HTML Rmarkdown outputs** aren't very interactive. Text, plots and other outputs are statically assembled at runtime and the document stays that way.
+- **HTML R markdown outputs** are a nice comprimise. They support superficially interactive elements (tooltips, action filtering) through HTML widgets. **AND** interactivity can be enhanced and that's the topic of this post!
 
-This post specifically focuses on option 2 and how it can be enhanced to be more like '
-
+The key concept to get your head around is the client / server model from web-development. The upshot here is that if you don't have a server (an engine to drive what content is shown) your interactivity is always limited. I can request my R markdown document to go and retrieve 10 extra rows from the database cause there's no one there to listen to me. Everything you allow the person (client) to see must be delivered to them when they open the document. The key to unlock interactivity in this context is with `htmlwidgets` and client side javascript.
 
 # Generate Data
+
+I'll create a toy example with the awesome `highcharter` package. Our aim will be to allow the user to switch between a view of probability density functions and cumulative distribution functions. If you forget the difference, don't worry it's not important.
+
 
 ```{r}
 library(dplyr)
@@ -61,43 +63,45 @@ density %>% head()
 
 library(highcharter)
 
-
+ 
 plot_data = density %>% spread(distribution, density)
+# 
+#   highchart() %>%
+#   hc_add_theme(hc_theme_monokai()) %>%
+#   hc_chart(
+#     animation = list(duration = 2000),
+#     height = 500
+#   ) %>%
+#   hc_xAxis(
+#     title = list(text = "Value")
+#   ) %>%
+#   hc_yAxis(
+#     title = list(text = "Probablity Density"),
+#     labels = list(formatter = JS("function(){return(Math.round(this.value * 1000) / 10 + '%')}"))
+#   ) %>%
+#   hc_title(text = "3 Probability Densities") %>%
+#   hc_add_series(
+#     name = "Normal", 
+#     type = "spline",
+#     data = plot_data %>% select(x = value, y = normal) %>% list_parse()
+#     #marker = list(enabled = FALSE)
+#   ) %>%
+#   hc_add_series(
+#     name = "Exponential",
+#     type = "spline",
+#     data = plot_data %>% select(x = value, y = exponential) %>% list_parse()
+#    # marker = list(enabled = FALSE)
+#   ) %>%
+#   hc_add_series(
+#     name = "Uniform",
+#     type = "spline",
+#     data = plot_data %>% select(x = value, y = uniform) %>% list_parse()
+#    # marker = list(enabled = FALSE)
+#   ) -> chart
+# 
+# chart
 
-  highchart() %>%
-  hc_add_theme(hc_theme_monokai()) %>%
-  hc_chart(
-    animation = list(duration = 2000),
-    height = 500
-  ) %>%
-  hc_xAxis(
-    title = list(text = "Value")
-  ) %>%
-  hc_yAxis(
-    title = list(text = "Probablity Density"),
-    labels = list(formatter = JS("function(){return(Math.round(this.value * 1000) / 10 + '%')}"))
-  ) %>%
-  hc_title(text = "3 Probability Densities") %>%
-  hc_add_series(
-    name = "Normal", 
-    type = "spline",
-    data = plot_data %>% select(x = value, y = normal) %>% list_parse()
-    #marker = list(enabled = FALSE)
-  ) %>%
-  hc_add_series(
-    name = "Exponential",
-    type = "spline",
-    data = plot_data %>% select(x = value, y = exponential) %>% list_parse()
-   # marker = list(enabled = FALSE)
-  ) %>%
-  hc_add_series(
-    name = "Uniform",
-    type = "spline",
-    data = plot_data %>% select(x = value, y = uniform) %>% list_parse()
-   # marker = list(enabled = FALSE)
-  ) -> chart
-
-chart
+hchart(density, "spline", hcaes(x = value, y = density, group = distribution))
 
 
 ```
