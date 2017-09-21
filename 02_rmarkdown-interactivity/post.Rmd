@@ -17,13 +17,13 @@ img: "bulletin-edition-1"
 
 Adding interactivity to data analytics outputs is a great tool to have in your toolkit.
 
-As an R User you generally have a few major output options. However, it's not immediately obvious how interactive you can get within each format. 
+As an R User you have a few major output formats to choose from. However, it's not immediately obvious how much interactivity you can embed within each format. 
 
 - **Shiny Apps** are the most interactive format with few limitations but require a computer server to host. This can be too much overhead for smaller tasks.
 - **Non-HTML Rmarkdown outputs** aren't very interactive. Text, plots and other outputs are statically assembled at runtime and the document stays that way.
-- **HTML R markdown outputs** are a nice comprimise. They support superficially interactive elements (tooltips, action filtering) through HTML widgets. **AND** interactivity can be enhanced and that's the topic of this post!
+- **HTML R markdown outputs** are a nice comprimise. They support superficially interactive elements (tooltips, action filtering) through HTML widgets **AND** if you know a few tricks interactivity can be signficantly enhanced. That's the topic of this post!
 
-The key concept to get your head around is the client / server model from web-development. The upshot here is that if you don't have a server (an engine to drive what content is shown) your interactivity is always limited. I can request my R markdown document to go and retrieve 10 extra rows from the database cause there's no one there to listen to me. Everything you allow the person (client) to see must be delivered to them when they open the document. The key to unlock interactivity in this context is with `htmlwidgets` and client side javascript.
+The key concept to get your head around is the client / server model from web-development. The upshot here is that if you don't have a server (an engine to drive what content is shown to the user) your interactivity will always limited. I can't request my R markdown document to go and retrieve 10 extra rows from a database because there's no one actually there to listen to me - the lights aren't on. Everything you allow the person (client) to see must be delivered to them when they open the document. The key tools to unlock interactivity in this context are `htmlwidgets` and client side javascript.
 
 # Generate Data
 
@@ -33,6 +33,7 @@ I'll create a toy example with the awesome `highcharter` package. Our aim will b
 ```{r}
 library(dplyr)
 library(tidyr)
+library(highcharter)
 
 data <- data.frame(
   normal = rnorm(10000, 5, 2), # 1000 random from normal dist
@@ -63,45 +64,21 @@ density %>% head()
 
 library(highcharter)
 
- 
-plot_data = density %>% spread(distribution, density)
-# 
-#   highchart() %>%
-#   hc_add_theme(hc_theme_monokai()) %>%
-#   hc_chart(
-#     animation = list(duration = 2000),
-#     height = 500
-#   ) %>%
-#   hc_xAxis(
-#     title = list(text = "Value")
-#   ) %>%
-#   hc_yAxis(
-#     title = list(text = "Probablity Density"),
-#     labels = list(formatter = JS("function(){return(Math.round(this.value * 1000) / 10 + '%')}"))
-#   ) %>%
-#   hc_title(text = "3 Probability Densities") %>%
-#   hc_add_series(
-#     name = "Normal", 
-#     type = "spline",
-#     data = plot_data %>% select(x = value, y = normal) %>% list_parse()
-#     #marker = list(enabled = FALSE)
-#   ) %>%
-#   hc_add_series(
-#     name = "Exponential",
-#     type = "spline",
-#     data = plot_data %>% select(x = value, y = exponential) %>% list_parse()
-#    # marker = list(enabled = FALSE)
-#   ) %>%
-#   hc_add_series(
-#     name = "Uniform",
-#     type = "spline",
-#     data = plot_data %>% select(x = value, y = uniform) %>% list_parse()
-#    # marker = list(enabled = FALSE)
-#   ) -> chart
-# 
-# chart
-
-hchart(density, "spline", hcaes(x = value, y = density, group = distribution))
+hchart(density, "spline", hcaes(x = value, y = density, group = distribution)) %>%
+  hc_elementId(id = "static_graph") %>%
+  hc_add_theme(hc_theme_monokai()) %>%
+  hc_chart(
+    animation = list(duration = 2000),
+    height = 500
+  ) %>%
+  hc_xAxis(
+    title = list(text = "Value")
+  ) %>%
+  hc_yAxis(
+    title = list(text = "Probablity Density"),
+    labels = list(formatter = JS("function(){return(Math.round(this.value * 1000) / 10 + '%')}"))
+  ) %>%
+  hc_title(text = "3 Probability Densities") 
 
 
 ```
@@ -162,50 +139,26 @@ nor_cdf = get_dist(density, "normal", "cdf") %>% js_stringify()
 exp_cdf = get_dist(density, "exponential", "cdf") %>% js_stringify()
 uni_cdf = get_dist(density, "uniform", "cdf") %>% js_stringify()
 
-
-
 ```
 
 # In action
 
 ```{r}
-
-  highchart(elementId = "densities_v2") %>%
+hchart(density, "spline", hcaes(x = value, y = density, group = distribution)) %>%
+  hc_elementId(id = "interactive_graph") %>%
   hc_add_theme(hc_theme_monokai()) %>%
   hc_chart(
     animation = list(duration = 2000),
     height = 500
   ) %>%
   hc_xAxis(
-    #categories = plot_data$value,
     title = list(text = "Value")
   ) %>%
   hc_yAxis(
     title = list(text = "Probablity Density"),
     labels = list(formatter = JS("function(){return(Math.round(this.value * 1000) / 10 + '%')}"))
   ) %>%
-  hc_title(text = "3 Probability Densities") %>%
-  hc_add_series(
-    name = "Normal", 
-    type = "spline",
-    #data = plot_data$normal,
-    data = plot_data %>% select(x = value, y = normal) %>% list_parse(),
-    marker = list(enabled = FALSE)
-  ) %>%
-  hc_add_series(
-    name = "Exponential",
-    type = "spline",
-    #data = plot_data$exponential,
-    data= plot_data %>% select(x = value, y = exponential) %>% list_parse(),
-    marker = list(enabled = FALSE)
-  ) %>%
-  hc_add_series(
-    name = "Uniform",
-    type = "spline",
-    #data = plot_data$uniform,
-    data = plot_data %>% select(x = value, y = uniform) %>% list_parse(),
-    marker = list(enabled = FALSE)
-  ) 
+  hc_title(text = "3 Probability Densities") 
 
 ```
 
@@ -215,32 +168,50 @@ uni_cdf = get_dist(density, "uniform", "cdf") %>% js_stringify()
 
   $(document).ready(function() {
   
-    var show_cdf = true;
+    var show_cdf = false;
     
     $("#test").click(function(){
     
-      var chart=$("#densities_v2").highcharts();
+      var chart=$("#interactive_graph").highcharts();
       
       if (!show_cdf) {
       
         chart.yAxis[0].setTitle({text:"Cumulative Probability", redraw:false});
-        uni_cdf = `r uni_cdf`;
-        nor_cdf = `r nor_cdf`;
-        exp_cdf = `r exp_cdf`;
-        chart.series[0].setData(nor_cdf);
-        chart.series[1].setData(exp_cdf);
-        chart.series[2].setData(uni_cdf);
+        
+        for (var i = 0; i <= chart.series.length; i++) {
+        
+          if (chart.series[i].name=="normal") {
+            new_data = `r nor_cdf`;
+          } else if (chart.series[i].name=="uniform") {
+            new_data = `r uni_cdf`;
+          } else {
+            new_data = `r exp_cdf`;
+          }
+          
+          chart.series[i].setData(new_data);
+          
+        }
+        
         $("#test").html("Show Density");
         
       } else {
       
         chart.yAxis[0].setTitle({text:"Probability Density", redraw:false});
-        uni_pdf = `r uni_pdf`;
-        nor_pdf = `r nor_pdf`;
-        exp_pdf = `r exp_pdf`;
-        chart.series[0].setData(nor_pdf);
-        chart.series[1].setData(exp_pdf);
-        chart.series[2].setData(uni_pdf);
+        
+        for (var i = 0; i <= chart.series.length; i++) {
+        
+          if (chart.series[i].name=="normal") {
+            new_data = `r nor_pdf`;
+          } else if (chart.series[i].name=="uniform") {
+            new_data = `r uni_pdf`;
+          } else {
+            new_data = `r exp_pdf`;
+          }
+          
+          chart.series[i].setData(new_data);
+          
+        }
+        
         $("#test").html("Show CDF");
       
     };
@@ -256,37 +227,59 @@ uni_cdf = get_dist(density, "uniform", "cdf") %>% js_stringify()
 
 ```{class.source="language-javascript"}
 
-$(document).ready(function() {
-
-  var show_cdf = false;
+  $(document).ready(function() {
   
-  $("#test").click(function(){
-  
-    var chart=$("#densities_v2").find(".highchart").highcharts();
+    var show_cdf = false;
     
-    if (show_cdf) {
+    $("#test").click(function(){
     
-      chart.yAxis[0].setExtremes(0,null);
-      chart.yAxis[0].setTitle({text:"Probability Density", redraw:false});
-      uni_cdf = `r uni_cdf`;
-      nor_cdf = `r nor_cdf`;
-      exp_cdf = `r exp_cdf`;
-      chart.series[0].setData(uni_cdf);
-      chart.series[1].setData(nor_cdf);
-      chart.series[2].setData(exp_cdf);
-
-    } else {
+      var chart=$("#interactive_graph").highcharts();
+      
+      if (!show_cdf) {
+      
+        chart.yAxis[0].setTitle({text:"Cumulative Probability", redraw:false});
+        
+        for (var i = 0; i <= chart.series.length; i++) {
+        
+          if (chart.series[i].name=="normal") {
+            new_data = `r nor_cdf`;
+          } else if (chart.series[i].name=="uniform") {
+            new_data = `r uni_cdf`;
+          } else {
+            new_data = `r exp_cdf`;
+          }
+          
+          chart.series[i].setData(new_data);
+          
+        }
+        
+        $("#test").html("Show Density");
+        
+      } else {
+      
+        chart.yAxis[0].setTitle({text:"Probability Density", redraw:false});
+        
+        for (var i = 0; i <= chart.series.length; i++) {
+        
+          if (chart.series[i].name=="normal") {
+            new_data = `r nor_pdf`;
+          } else if (chart.series[i].name=="uniform") {
+            new_data = `r uni_pdf`;
+          } else {
+            new_data = `r exp_pdf`;
+          }
+          
+          chart.series[i].setData(new_data);
+          
+        }
+        
+        $("#test").html("Show CDF");
+      
+    };
     
-      chart.yAxis[0].setExtremes(0,1);
-      chart.yAxis[0].setTitle({text:"Cumulative Probability", redraw:false});
-
-      $("#update_age_series").html("Show Density");
+    show_cdf = !show_cdf;
     
-  };
-  
-  show_cdf = !show_cdf
-  
-  }); 
-});
+    }); 
+  });
 
 ```
