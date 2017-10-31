@@ -13,24 +13,30 @@ description: "Interactivity can be added to static HTML R Markdown outputs by us
 img: "bulletin-edition-1"
 ---
 
+```{r}
+# Knitr Options
+knitr::opts_chunk$set(warning=FALSE, message=FALSE, strip.white = FALSE)
+
+```
+
 # Overview
 
 Adding interactivity to data analytics outputs is a great tool to have in your toolkit.
 
 As an R User you have a few major output formats to choose from. However, it's not immediately obvious how much interactivity you can embed within each format. 
 
-- **Shiny Apps** are the most interactive format with few limitations but require a computer server to host. This can be too much overhead for smaller tasks.
+- **Shiny Apps** are the most interactive format with few limitations but require a computer server to host as well as codifying a decent amount of interactivity logic in the shiny syntax. This can be too much overhead for smaller tasks.
 - **Non-HTML Rmarkdown outputs** aren't very interactive. Text, plots and other outputs are statically assembled at runtime and the document stays that way.
 - **HTML R markdown outputs** are a nice comprimise. They support superficially interactive elements (tooltips, action filtering) through HTML widgets **AND** if you know a few tricks interactivity can be signficantly enhanced. That's the topic of this post!
 
 The key concept to get your head around is the client / server model from web-development. The upshot here is that if you don't have a server (an engine to drive what content is shown to the user) your interactivity will always limited. I can't request my R markdown document to go and retrieve 10 extra rows from a database because there's no one actually there to listen to me - the lights aren't on. Everything you allow the person (client) to see must be delivered to them when they open the document. The key tools to unlock interactivity in this context are `htmlwidgets` and client side javascript.
 
-# Generate Data
+# Example
 
 I'll create a toy example with the awesome `highcharter` package. Our aim will be to allow the user to switch between a view of probability density functions and cumulative distribution functions. If you forget the difference, don't worry it's not important.
 
-
-```{r}
+**Generate Data**
+```{r message=FALSE, warning=FALSE}
 library(dplyr)
 library(tidyr)
 library(highcharter)
@@ -58,8 +64,9 @@ density %>% head()
 ```
 
 
-# Plot Data
+Using `highcharter` we'll plot the densities of these 3 distributions.
 
+**Plot Data**
 ```{r}
 
 library(highcharter)
@@ -67,19 +74,13 @@ library(highcharter)
 hchart(density, "spline", hcaes(x = value, y = density, group = distribution)) %>%
   hc_elementId(id = "static_graph") %>%
   hc_add_theme(hc_theme_monokai()) %>%
-  hc_chart(
-    animation = list(duration = 2000),
-    height = 500
-  ) %>%
-  hc_xAxis(
-    title = list(text = "Value")
-  ) %>%
+  hc_chart(height = 500) %>%
+  hc_xAxis(title = list(text = "Value")) %>%
   hc_yAxis(
     title = list(text = "Probablity Density"),
     labels = list(formatter = JS("function(){return(Math.round(this.value * 1000) / 10 + '%')}"))
   ) %>%
   hc_title(text = "3 Probability Densities") 
-
 
 ```
 
@@ -99,7 +100,7 @@ get_dist = function(df, var, type) {
     mutate(
       js_pair = paste0("[", value, "," , density %>% round(6), "]")
     ) %>%
-    pull(js_pair) %>% # Just found this function, handy!
+    pull(js_pair) %>% # Extract column as vector
     return()
     
   } else {
@@ -111,7 +112,7 @@ get_dist = function(df, var, type) {
       cdf = cumsum(density),
       js_pair = paste0("[", value, "," , cdf %>% round(4), "]")
     ) %>%
-    pull(js_pair) %>% # Just found this function, handy!
+    pull(js_pair) %>% # Extract column as vector
     return()
     
   }
