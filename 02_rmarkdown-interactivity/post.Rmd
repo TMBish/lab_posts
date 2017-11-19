@@ -25,15 +25,15 @@ Adding interactivity to data analytics outputs is a great tool to have in your t
 
 As an R User you have a few major output formats to choose from. However, it's not immediately obvious how much interactivity you can embed within each format. 
 
-- **Shiny Apps** are the most interactive format with few limitations but require a computer server to host as well as codifying a decent amount of interactivity logic in the shiny syntax. This can be too much overhead for smaller tasks.
+- **Shiny Apps** are the most interactive format with few limitations but require a computer server to host as well as codifying a decent amount of the interactivity logic in  shiny syntax. This can be too much overhead for smaller tasks.
 - **Non-HTML Rmarkdown outputs** aren't very interactive. Text, plots and other outputs are statically assembled at runtime and the document stays that way.
 - **HTML R markdown outputs** are a nice comprimise. They support superficially interactive elements (tooltips, action filtering) through HTML widgets **AND** if you know a few tricks interactivity can be signficantly enhanced. That's the topic of this post!
 
-The key concept to get your head around is the client / server model from web-development. The upshot here is that if you don't have a server (an engine to drive what content is shown to the user) your interactivity will always limited. I can't request my R markdown document to go and retrieve 10 extra rows from a database because there's no one actually there to listen to me - the lights aren't on. Everything you allow the person (client) to see must be delivered to them when they open the document. The key tools to unlock interactivity in this context are `htmlwidgets` and client side javascript.
+The key concept to get your head around is the client / server model from web-development. The upshot here is that if you don't have a server (an engine to drive what content is shown to the user) your interactivity will always be limited. I can't request my R markdown document to go and retrieve 10 extra rows from a database because there's no one actually there to listen to me - the lights aren't on. Everything you allow the person (client) to see must be delivered to them when they open the document. The key tools to unlock interactivity in this context are `htmlwidgets` and client side javascript.
 
 # Example
 
-I'll create a toy example with the awesome `highcharter` package. Our aim will be to allow the user to switch between a view of probability density functions and cumulative distribution functions. If you forget the difference, don't worry it's not important.
+I'll create a toy example with the awesome `highcharter` package - a wrapper for the Highcharts API. Our aim will be to allow the user to switch between a view of probability density functions and cumulative distribution functions. If you forget the difference, don't worry it's not important.
 
 **Generate Data**
 ```{r message=FALSE, warning=FALSE}
@@ -64,29 +64,31 @@ density %>% head()
 ```
 
 
-Using `highcharter` we'll plot the densities of these 3 distributions.
-
 **Plot Data**
-```{r}
 
+Using `highcharter` we'll plot the empirical densities of our sample from these 3 distributions.
+
+```{r}
 library(highcharter)
 
 hchart(density, "spline", hcaes(x = value, y = density, group = distribution)) %>%
   hc_elementId(id = "static_graph") %>%
-  hc_add_theme(hc_theme_monokai()) %>%
+  hc_add_theme(hc_theme_538()) %>%
   hc_chart(height = 500) %>%
   hc_xAxis(title = list(text = "Value")) %>%
   hc_yAxis(
     title = list(text = "Probablity Density"),
     labels = list(formatter = JS("function(){return(Math.round(this.value * 1000) / 10 + '%')}"))
   ) %>%
-  hc_title(text = "3 Probability Densities") 
+  hc_title(text = "3 Probability Densities") %>% 
+  hc_subtitle(text = "Emprical density plot for a 10,000 random sample from each of uniform, normal and exponential probability distributions.")
 
 ```
 
 
-# Add Interactivity
+# Preparing Data
 
+The next thing we're going to do is to create a function that can extract the probability densities and the cumulative probability densities (just taking a cumulative sum over the density column) from our simulated and aggregated data set from above.
 
 ```{r}
 
@@ -118,8 +120,12 @@ get_dist = function(df, var, type) {
   }
   
 }
+```
 
-# Conver R char vector of x, y pairs to JS array string
+Now what we want, and moving ahead a little bit, is to create a function that will convert the output of the above function (a simple numeric R vector) and create a valid javascript array. We need to do this because we're going to embed the 6 key data sets into client side javascript code. The `JS` function from `htmlwidgets` attaches the required metadata to a string so that it is interpreted as javascript code intstead of a simple string.
+
+```{r}
+# Convert R char vector of x, y pairs to JS array string
 js_stringify = function(vec) {
   
   vec %>%
@@ -129,7 +135,11 @@ js_stringify = function(vec) {
     return()
   
 }
+```
 
+Now we'll create those 6 key javascript arrays.
+
+```{r}
 # Javascriptise PDF Data
 nor_pdf = get_dist(density, "normal", "pdf") %>% js_stringify()
 exp_pdf = get_dist(density, "exponential", "pdf") %>% js_stringify()
