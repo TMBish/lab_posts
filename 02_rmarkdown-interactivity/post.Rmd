@@ -64,7 +64,7 @@ density %>% head()
 ```
 
 
-**Plot Data**
+## Plot Data
 
 Using `highcharter` we'll plot the empirical densities of our sample from these 3 distributions.
 
@@ -80,13 +80,13 @@ hchart(density, "spline", hcaes(x = value, y = density, group = distribution)) %
     title = list(text = "Probablity Density"),
     labels = list(formatter = JS("function(){return(Math.round(this.value * 1000) / 10 + '%')}"))
   ) %>%
-  hc_title(text = "3 Probability Densities") %>% 
+  hc_title(text = "Probability Densities: Uniform, Normal, and Exponential") %>% 
   hc_subtitle(text = "Emprical density plot for a 10,000 random sample from each of uniform, normal and exponential probability distributions.")
 
 ```
 
 
-# Preparing Data
+## Preparing Data
 
 The next thing we're going to do is to create a function that can extract the probability densities and the cumulative probability densities (just taking a cumulative sum over the density column) from our simulated and aggregated data set from above.
 
@@ -137,7 +137,7 @@ js_stringify = function(vec) {
 }
 ```
 
-Now we'll create those 6 key javascript arrays.
+Now we'll use both of those functions to create our 6 key javascript arrays.
 
 ```{r}
 # Javascriptise PDF Data
@@ -152,28 +152,104 @@ uni_cdf = get_dist(density, "uniform", "cdf") %>% js_stringify()
 
 ```
 
-# In action
+## The Javascript
+
+Now what we have to do is write some - relatively simple - javascript to switch CDF and PDF data when the user presses a button.
+
+The key things to call out in this code are:
+* thing 1
+* The `show_cdf` boolean keeps track of which view to switch out
+* To find the `highcharts` object within the page you can use the `.highcharts()`
+* More things
+
+```{class.source="language-javascript"}
+
+  $(document).ready(function() {
+  
+    var show_cdf = false;
+    
+    $("#test").click(function(){
+    
+      var chart=$("#interactive_graph").highcharts();
+      
+      if (!show_cdf) {
+      
+        chart.yAxis[0].setTitle({text:"Cumulative Probability", redraw:false});
+        
+        for (var i = 0; i <= chart.series.length; i++) {
+        
+          if (chart.series[i].name=="normal") {
+            new_data = `r nor_cdf`;
+          } else if (chart.series[i].name=="uniform") {
+            new_data = `r uni_cdf`;
+          } else {
+            new_data = `r exp_cdf`;
+          }
+          
+          chart.series[i].setData(new_data);
+          
+        }
+        
+        $("#test").html("Show Density");
+        
+      } else {
+      
+        chart.yAxis[0].setTitle({text:"Probability Density", redraw:false});
+        
+        for (var i = 0; i <= chart.series.length; i++) {
+        
+          if (chart.series[i].name=="normal") {
+            new_data = `r nor_pdf`;
+          } else if (chart.series[i].name=="uniform") {
+            new_data = `r uni_pdf`;
+          } else {
+            new_data = `r exp_pdf`;
+          }
+          
+          chart.series[i].setData(new_data);
+          
+        }
+        
+        $("#test").html("Show CDF");
+      
+    };
+    
+    show_cdf = !show_cdf;
+    
+    }); 
+  });
+
+```
+
+## In Action
+
+Now let's see why we went to all that effort.
 
 ```{r}
+
 hchart(density, "spline", hcaes(x = value, y = density, group = distribution)) %>%
   hc_elementId(id = "interactive_graph") %>%
-  hc_add_theme(hc_theme_monokai()) %>%
+  hc_add_theme(hc_theme_538()) %>%
   hc_chart(
     animation = list(duration = 2000),
     height = 500
   ) %>%
-  hc_xAxis(
-    title = list(text = "Value")
-  ) %>%
+  hc_xAxis(title = list(text = "Value")) %>%
   hc_yAxis(
     title = list(text = "Probablity Density"),
     labels = list(formatter = JS("function(){return(Math.round(this.value * 1000) / 10 + '%')}"))
   ) %>%
-  hc_title(text = "3 Probability Densities") 
+  hc_title(text = "Probability Distributions: Uniform, Normal, and Exponential") %>% 
+  hc_subtitle(text = "Emprical density plot for a 10,000 random sample from each of uniform, normal and exponential probability distributions.")
+
 
 ```
 
 <button id="test"> Click Me </button>
+
+<br>
+<br>
+
 
 <script>
 
@@ -236,61 +312,4 @@ hchart(density, "spline", hcaes(x = value, y = density, group = distribution)) %
 
 
 
-```{class.source="language-javascript"}
 
-  $(document).ready(function() {
-  
-    var show_cdf = false;
-    
-    $("#test").click(function(){
-    
-      var chart=$("#interactive_graph").highcharts();
-      
-      if (!show_cdf) {
-      
-        chart.yAxis[0].setTitle({text:"Cumulative Probability", redraw:false});
-        
-        for (var i = 0; i <= chart.series.length; i++) {
-        
-          if (chart.series[i].name=="normal") {
-            new_data = `r nor_cdf`;
-          } else if (chart.series[i].name=="uniform") {
-            new_data = `r uni_cdf`;
-          } else {
-            new_data = `r exp_cdf`;
-          }
-          
-          chart.series[i].setData(new_data);
-          
-        }
-        
-        $("#test").html("Show Density");
-        
-      } else {
-      
-        chart.yAxis[0].setTitle({text:"Probability Density", redraw:false});
-        
-        for (var i = 0; i <= chart.series.length; i++) {
-        
-          if (chart.series[i].name=="normal") {
-            new_data = `r nor_pdf`;
-          } else if (chart.series[i].name=="uniform") {
-            new_data = `r uni_pdf`;
-          } else {
-            new_data = `r exp_pdf`;
-          }
-          
-          chart.series[i].setData(new_data);
-          
-        }
-        
-        $("#test").html("Show CDF");
-      
-    };
-    
-    show_cdf = !show_cdf;
-    
-    }); 
-  });
-
-```
