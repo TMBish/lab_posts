@@ -7,10 +7,10 @@ month: "`r format(Sys.Date(), '%b')`"
 year: "`r format(Sys.Date(), '%Y')`"
 slug: adding-rmarkdown-interactivity
 categories: []
-tags: ["R", "R Markdown", "Javascript", "Highcharts"]
+tags: ["R", "R Markdown", "Javascript", "Highcharter"]
 highlight: "kate"
-description: "Interactivity can be added to static HTML R Markdown outputs by using a couple of cool tricks."
-img: "bulletin-edition-1"
+description: "Interactivity can be added to static HTML R Markdown outputs with some creativity."
+img: "rmarkdown-interactivity"
 ---
 
 ```{r echo=FALSE}
