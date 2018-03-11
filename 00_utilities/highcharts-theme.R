@@ -62,7 +62,7 @@ high_tmbish = function() {
       plotOptions = list(
         line = list(marker = list(symbol = "circle", lineWidth = 2, radius = 5)),
         spline = list(marker = list(symbol = "circle", lineWidth = 2, radius = 5)),
-        column = list(dataLabels = list(backgroundColor = "#FFF"))
+        column = list(dataLabels = list(backgroundColor = "#FFF"), borderRadius = 3, borderWidth = 0)
       ),
       legend = list(
         align = "right",
