@@ -78,7 +78,7 @@ compile_review = function(yaml_chunk, edition) {
 
   # Pick of Week Text
   pow_text = ifelse(
-    yaml_body$`pick-of-the-week` == "yes",
+    yaml_body$`pick-of-the-week`,
     '<span class="label upper outline error"> PICK OF THE WEEK </span>',
     ''
   )
@@ -89,7 +89,7 @@ compile_review = function(yaml_chunk, edition) {
       
       h1(film_title),
 
-      HTML(glue('<span class="label upper outline black"> {toupper(yaml_body$genre)} </span>'))
+      HTML(glue('<span class="label upper outline warning"> {toupper(yaml_body$genre)} </span>'))
     ),
 
     div(class="film-review-left",
