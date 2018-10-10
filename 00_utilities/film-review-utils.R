@@ -87,9 +87,8 @@ compile_review = function(yaml_chunk, edition) {
     
     div(class = "film-title",
       
-      h1(film_title),
+      h1(film_title)
 
-      HTML(glue('<span class="label upper outline warning"> {toupper(yaml_body$genre)} </span>'))
     ),
 
     div(class="film-review-left",
@@ -97,8 +96,15 @@ compile_review = function(yaml_chunk, edition) {
       # Image
       tags$img(src = glue("/img/films/{edition}/{yaml_body$image}")),
 
+      # Tags
+      HTML(
+        glue(
+        '<span class="label upper outline warning"> {toupper(yaml_body$genre)} </span> {pow_text}'
+        )
+      )
+
       # Reviewer
-      HTML(glue("<b> {yaml_body$reviewer} : </b> {pow_text}")),
+      HTML(glue("<b> {yaml_body$reviewer} : </b>")),
       
       # Review Text
       markdown::markdownToHTML(
