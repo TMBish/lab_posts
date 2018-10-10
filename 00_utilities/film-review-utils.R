@@ -71,11 +71,11 @@ chart_radar = function(movie, acting = 5, dialogue = 5, story = 5, entertainment
   
 }
 
-compile_review = function(yaml_chunk) {
+compile_review = function(yaml_chunk, edition) {
   
   film_title = yaml_chunk %>% names()
   yaml_body = yaml_chunk %>% pluck(film_title)
-  
+
   div(class = "film-review",
     
     div(class = "film-title",
@@ -85,7 +85,7 @@ compile_review = function(yaml_chunk) {
     div(class="film-review-left",
            
       # Image
-      tags$img(src = "/img/films/E13.png"),
+      tags$img(src = glue("/img/films/{edition}/{image}"),
       
       # Reviewer
       tags$b(paste0(yaml_body$reviewer, ":")),
