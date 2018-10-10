@@ -76,19 +76,29 @@ compile_review = function(yaml_chunk, edition) {
   film_title = yaml_chunk %>% names()
   yaml_body = yaml_chunk %>% pluck(film_title)
 
+  # Pick of Week Text
+  pow_text = ifelse(
+    yaml_body$`pick-of-the-week` == "yes",
+    '<span class="label upper outline error"> PICK OF THE WEEK </span>',
+    ''
+  )
+
   div(class = "film-review",
     
     div(class = "film-title",
-      h1(film_title)
+      
+      h1(film_title),
+
+      HTML(glue('<span class="label upper outline black"> {toupper(yaml_body$genre)} </span>'))
     ),
 
     div(class="film-review-left",
            
       # Image
       tags$img(src = glue("/img/films/{edition}/{yaml_body$image}")),
-      
+
       # Reviewer
-      tags$b(paste0(yaml_body$reviewer, ":")),
+      HTML(glue("<b> {yaml_body$reviewer} : </b> {pow_text}")),
       
       # Review Text
       markdown::markdownToHTML(
