@@ -23,7 +23,7 @@ chart_scores = function(tom, hannah) {
     breaks = list(from = 1, to = 2, breakSize = 1),
     title = list(text = "")
   ) %>% 
-  hc_chart(height = 250) %>%
+  #hc_chart(height = 250) %>%
   hc_xAxis(
     min = 0, max = 10, tickWidth = 0,
     lineWidth = 0.5, 
@@ -44,7 +44,8 @@ chart_scores = function(tom, hannah) {
   hc_tooltip(
     shape = "square",
     formatter = JS("function(){return('<b> Overall Rating: </b>' + this.point.Max + '/10')}")
-  )
+  ) %>%
+  hc_size(height = "150px")
   
 }
 
@@ -62,8 +63,66 @@ chart_radar = function(movie, acting = 5, dialogue = 5, story = 5, entertainment
                showLegend = FALSE,
                polyAlpha = 0.1,
                labelSize=10, 
+               height = "300px",
+               width = "300px",
                scaleStepWidth = 5,
                colMatrix = matrix(c(247,201,25))
+  )
+  
+}
+
+compile_review = function(yaml_chunk) {
+  
+  film_title = yaml_chunk %>% names()
+  yaml_body = yaml_chunk %>% pluck(film_title)
+  
+  div(class = "film-review",
+    
+    div(class = "film-title",
+      h1(film_title)
+    ),
+
+    div(class="film-review-left",
+           
+      # Image
+      tags$img(src = "/img/films/E13.png"),
+      
+      # Reviewer
+      tags$b(paste0(yaml_body$reviewer, ":")),
+      
+      # Review Text
+      markdown::markdownToHTML(
+        text = yaml_body$`review-text` , 
+        fragment.only = TRUE
+      ) %>% HTML()
+
+    ),
+    
+    div(class="film-review-right",
+      
+      div(class = "review-component",
+        HTML(glue("<b> Similar to: </b> {yaml_body$`similar-film`}"))
+      ),
+  
+      # Rating Overall
+      div(class="ratings review-component",
+        chart_scores(tom = yaml_body$ratings$overall$tom, hannah = yaml_body$ratings$overall$hannah)
+      ),
+      
+      # Rating Radar
+      div(class = "review-component",
+        chart_radar(
+          film_title, 
+          acting = yaml_body$ratings$components$acting, 
+          dialogue = yaml_body$ratings$components$dialogue, 
+          story = yaml_body$ratings$components$story, 
+          entertainment = yaml_body$ratings$components$entertainment, 
+          cinematography = yaml_body$ratings$components$cinematography
+        )
+      )
+      
+    )
+    
   )
   
 }
