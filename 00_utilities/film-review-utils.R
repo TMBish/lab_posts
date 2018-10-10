@@ -97,10 +97,12 @@ compile_review = function(yaml_chunk, edition) {
       tags$img(src = glue("/img/films/{edition}/{yaml_body$image}")),
 
       # Tags
+      div(class = "film-tags"
       HTML(
         glue(
         '<span class="label upper outline warning"> {toupper(yaml_body$genre)} </span> {pow_text}'
         )
+      )
       )
 
       # Reviewer
