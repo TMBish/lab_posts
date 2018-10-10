@@ -85,7 +85,7 @@ compile_review = function(yaml_chunk, edition) {
     div(class="film-review-left",
            
       # Image
-      tags$img(src = glue("/img/films/{edition}/{image}"),
+      tags$img(src = glue("/img/films/{edition}/{image}")),
       
       # Reviewer
       tags$b(paste0(yaml_body$reviewer, ":")),
