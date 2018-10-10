@@ -103,7 +103,7 @@ compile_review = function(yaml_chunk, edition) {
         '<span class="label upper outline warning"> {toupper(yaml_body$genre)} </span> {pow_text}'
         )
       )
-      )
+      ),
 
       # Reviewer
       HTML(glue("<b> {yaml_body$reviewer} : </b>")),
