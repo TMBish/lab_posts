@@ -75,6 +75,7 @@ compile_review = function(yaml_chunk, edition) {
   
   film_title = yaml_chunk %>% names()
   yaml_body = yaml_chunk %>% pluck(film_title)
+  edition = stringr::str_pad(edition, 2, pad = "0")
 
   # Pick of Week Text
   pow_text = ifelse(
