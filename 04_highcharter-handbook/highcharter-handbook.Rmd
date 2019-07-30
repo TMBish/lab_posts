@@ -1,17 +1,71 @@
 ---
 title: "Highcharter Handbook"
 author: "Tom Bishop"
-date: "29 November 2018"
+date: "30 July 2019"
 output: 
-    hrbrthemes::ipsum:
-        self_contained: yes
+    html_document:
+        toc: true
+        toc_float: true        
+        theme: sandstone
 ---
 
 ```{r setup, include=FALSE}
+
+library(highcharter)
+library(tidyverse)
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
+## Overview
+
+`highcharter` is an R implementation of the highcharts javascript graphing API through R's `htmlwidgets`. Most of the highcharts functionality is implemented through `highcharter` however the documentation is somewhat limited. This guide will provide examples on how to create and customise various graphs whilst providing some tips on how to think about the package that will help you build and debug your charts.
+
+Your most important resource should be the highcharts api documentation which you should bookmark in your browser:
+
+* [Highcharts API Documentation](https://api.highcharts.com/highcharts/)
+
+Using `highcharter` properly will involve learning a little javascript but not too much, and it's probably good for you.
+
+## Basics
+
+```{r}
+hchart(starwars, "column", hcaes(x = name, y = height))
+```
+
+There's a number of things you might notice about this chart if you've spent a bit of time graphing in R. First thing is that if you can interact with it; hover over it to see a (relatively ugly) tooltip. Second is that it's dynamic, which you'll notice initially because there are more bars (star wars characters) than there are labels on the y-axis. To see an exaggerated version of this reduce the width of your browser window to see the chart react and replot as it tries to estimate the best way to present the data without it looking busy and cluttered; the number of characters shown on the y-axis will keep decreasing.
+
+This is normally a great and useful feature of highcharts but it's something to keep track of as you plot.
+
+## hchart()
+
+The `hchart()` function is kind of an amazing function that has been written to create immediate logical graphs from various types of R objects. `hchart()` will detect the R object type and decide the best way to plot it. Here are some examples. Notice that the function call is exactly the same `hchart([object])` but the plot that's produced is very different.
+
+### Numeric Vector -> Histogram
+
+```{r}
+starwars %>%
+  pull(mass) %>%
+  hchart()
+```
+
+
+### R Density Object -> Density Plot
+
+```{r}
+starwars %>%
+  filter(!is.na(mass)) %>%
+  pull(mass) %>%
+  density() %>%
+  hchart()
+```
+
+
+### Forecast Object -> Timeseries / Forecast Chart
+
+
+## Links
+
+
 
 This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
 
