@@ -13,6 +13,7 @@ output:
 
 library(highcharter)
 library(tidyverse)
+library(forecast)
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
@@ -26,7 +27,55 @@ Your most important resource should be the highcharts api documentation which yo
 
 Using `highcharter` properly will involve learning a little javascript but not too much, and it's probably good for you.
 
-## Basics
+## Datasets
+
+I'll frequently be using the following two datasets:
+
+* dplyr::starwars | the physical traits and info for characters in the starwars films
+* dplyr::storms | hurricane timeseries data
+
+
+## hchart()
+
+The `hchart()` function is kind of an amazing function that has been written to create immediate logical graphs from various types of R objects. `hchart()` will detect the R object type and decide the best way to plot it. Here are some examples. Notice that the function call is exactly the same `hchart([object])` but the plot that's produced is very different.
+
+Various other object types are supported which you can find [here](http://jkunst.com/highcharter/hchart.html)
+
+### Numeric Vector :: Histogram
+
+```{r}
+starwars %>%
+  pull(mass) %>%
+  hchart(name = class(.))
+```
+
+
+### Density Object :: Density Plot
+
+```{r}
+starwars %>%
+  filter(!is.na(mass)) %>%
+  pull(mass) %>%
+  density() %>%
+  hchart(name = class(.))
+```
+
+
+### Forecast Object :: Timeseries / Forecast Chart
+
+```{r}
+storms %>%
+  filter(name == "Emily") %>%
+  pull(wind) %>%
+  forecast() %>%
+  hchart(name = class(.))
+```
+
+
+## hchart() + hcaes()
+
+The most practical use of `hchart()` however is to use it like you would the `ggplot()` function. The implementation is slightly different - you have to specify your geom type inside the `hchart()` call for example - but the 
+
 
 ```{r}
 hchart(starwars, "column", hcaes(x = name, y = height))
@@ -35,52 +84,3 @@ hchart(starwars, "column", hcaes(x = name, y = height))
 There's a number of things you might notice about this chart if you've spent a bit of time graphing in R. First thing is that if you can interact with it; hover over it to see a (relatively ugly) tooltip. Second is that it's dynamic, which you'll notice initially because there are more bars (star wars characters) than there are labels on the y-axis. To see an exaggerated version of this reduce the width of your browser window to see the chart react and replot as it tries to estimate the best way to present the data without it looking busy and cluttered; the number of characters shown on the y-axis will keep decreasing.
 
 This is normally a great and useful feature of highcharts but it's something to keep track of as you plot.
-
-## hchart()
-
-The `hchart()` function is kind of an amazing function that has been written to create immediate logical graphs from various types of R objects. `hchart()` will detect the R object type and decide the best way to plot it. Here are some examples. Notice that the function call is exactly the same `hchart([object])` but the plot that's produced is very different.
-
-### Numeric Vector -> Histogram
-
-```{r}
-starwars %>%
-  pull(mass) %>%
-  hchart()
-```
-
-
-### R Density Object -> Density Plot
-
-```{r}
-starwars %>%
-  filter(!is.na(mass)) %>%
-  pull(mass) %>%
-  density() %>%
-  hchart()
-```
-
-
-### Forecast Object -> Timeseries / Forecast Chart
-
-
-## Links
-
-
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
-```
-
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
