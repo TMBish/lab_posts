@@ -17,23 +17,29 @@ library(forecast)
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Overview
+## Intro
 
-`highcharter` is an R implementation of the highcharts javascript graphing API through R's `htmlwidgets`. Most of the highcharts functionality is implemented through `highcharter` however the documentation is somewhat limited. This guide will provide examples on how to create and customise various graphs whilst providing some tips on how to think about the package that will help you build and debug your charts.
+`highcharter` is an R implementation of the highcharts javascript graphing API through R's `htmlwidgets`. Most of the highcharts functionality is implemented through `highcharter` however the documentation is somewhat limited. This guide will provide examples on how to create and customise various graphs whilst providing some tips on how to think about the package that will help you build and debug your charts. I'll try to show and explain (to the best of my knowledge) the most common graphs and customisation options I use in my day-to-day work.
 
-Your most important resource should be the highcharts api documentation which you should bookmark in your browser:
+Your most important resources should be the highcharter official website, and the highcharts api documentation which you should bookmark in your browser:
 
+* [Highcharter official website](http://jkunst.com/highcharter/)
 * [Highcharts API Documentation](https://api.highcharts.com/highcharts/)
 
-Using `highcharter` properly will involve learning a little javascript but not too much, and it's probably good for you.
+As you become more a more proficient `highcharter` user and your charting requirements become more complicated you will need to understand more about the complexities of the highcharts API and you might need to learn + read a little javascript. This learning curve is actually the best thing about highcharter: basic charts are as easy to create as `ggplot`, whilst complex / beautiful chars are still achievable with enough thought and tinkering.
 
-## Datasets
-
-I'll frequently be using the following two datasets:
+In the following examples I'll frequently be using the following two datasets:
 
 * dplyr::starwars | the physical traits and info for characters in the starwars films
 * dplyr::storms | hurricane timeseries data
 
+## Basics
+
+### Tidy Data
+
+If your 
+
+### Default charts
 
 ## hchart()
 
