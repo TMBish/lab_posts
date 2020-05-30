@@ -34,7 +34,7 @@ In the following examples I'll frequently be using the following two datasets:
 * dplyr::starwars | the physical traits and info for characters in the starwars films
 * dplyr::storms | hurricane timeseries data
 
-## Basics
+## Basic Charts
 
 ### Tidy Data
 
@@ -53,7 +53,8 @@ This chart (let's be honest here) looks awful. For full disclosure `ggplot` has 
 
 Here's the highcharter version of this plot:
 
-```{r message=FALSE, warning=FALSE}
+```{r out.width=c('50%', '50%'), fig.show='hold', message=FALSE, warning=FALSE}
+hchart(starwars, "column", hcaes(x = name, y = height))
 hchart(starwars, "column", hcaes(x = name, y = height))
 ```
 
@@ -66,7 +67,7 @@ This is normally a great and useful feature of highcharts but it's something to 
 
 ### Default charts
 
-## hchart()
+#### hchart()
 
 The `hchart()` function is kind of an amazing function that has been written to create immediate logical graphs from various types of R objects. `hchart()` will detect the R object type and decide the best way to plot it. Here are some examples. Notice that the function call is exactly the same `hchart([object])` but the plot that's produced is very different.
 
@@ -101,5 +102,24 @@ storms %>%
   forecast() %>%
   hchart(name = class(.))
 ```
+
+
+
+
+## Using The API Docs
+
+Lorem Ipsum
+
+## Customisation
+
+Lorem Ipsum
+
+## Advanced Charts
+
+Lorem Ipsum
+
+## Showcase
+
+Lorem Ipsum
 
 
